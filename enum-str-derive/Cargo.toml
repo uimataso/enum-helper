@@ -1,0 +1,9 @@
+[package]
+name = "enum-str-derive"
+version = "0.1.0"
+edition = "2021"
+authors = ["uima <git@uimataso.com>"]
+license = "MIT"
+
+[lib]
+proc-macro = true
