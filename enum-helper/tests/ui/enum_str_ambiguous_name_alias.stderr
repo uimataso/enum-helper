@@ -1,0 +1,5 @@
+error: ambiguous name `aaa` between `Bar` and `Baz`
+ --> tests/ui/enum_str_ambiguous_name_alias.rs:8:5
+  |
+8 |     Baz,
+  |     ^^^

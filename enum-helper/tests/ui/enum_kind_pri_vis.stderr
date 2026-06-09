@@ -1,0 +1,14 @@
+error[E0603]: enum `PriInnerKind` is private
+  --> tests/ui/enum_kind_pri_vis.rs:11:20
+   |
+11 |     let _ = inner::PriInnerKind::Foo;
+   |                    ^^^^^^^^^^^^  --- unit variant `Foo` is not publicly re-exported
+   |                    |
+   |                    private enum
+   |
+note: the enum `PriInnerKind` is defined here
+  --> tests/ui/enum_kind_pri_vis.rs:4:14
+   |
+4  |     #[derive(EnumKind, PartialEq, Eq)]
+   |              ^^^^^^^^
+   = note: this error originates in the derive macro `EnumKind` (in Nightly builds, run with -Z macro-backtrace for more info)

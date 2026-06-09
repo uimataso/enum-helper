@@ -1,0 +1,5 @@
+error: ambiguous name `foobar` between `FooBar` and `Foobar`
+ --> tests/ui/enum_str_ambiguous_rename_all.rs:7:5
+  |
+7 |     Foobar,
+  |     ^^^^^^

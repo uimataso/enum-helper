@@ -1,0 +1,5 @@
+error: duplicate enum_all attribute `skip`
+ --> tests/ui/enum_all_duplicated_skip.rs:6:16
+  |
+6 |     #[enum_all(skip)]
+  |                ^^^^

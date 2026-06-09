@@ -1,0 +1,7 @@
+error: EnumKind only supports enum
+ --> tests/ui/enum_kind_non_enum.rs:3:10
+  |
+3 | #[derive(EnumKind)]
+  |          ^^^^^^^^
+  |
+  = note: this error originates in the derive macro `EnumKind` (in Nightly builds, run with -Z macro-backtrace for more info)

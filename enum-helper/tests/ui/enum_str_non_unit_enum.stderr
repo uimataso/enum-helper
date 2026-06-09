@@ -1,0 +1,7 @@
+error: EnumStr only supports unit enum
+ --> tests/ui/enum_str_non_unit_enum.rs:3:10
+  |
+3 | #[derive(EnumStr)]
+  |          ^^^^^^^
+  |
+  = note: this error originates in the derive macro `EnumStr` (in Nightly builds, run with -Z macro-backtrace for more info)

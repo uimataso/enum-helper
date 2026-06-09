@@ -1,0 +1,5 @@
+error: unknown enum_kind container attribute `unknown`
+ --> tests/ui/enum_kind_unknown_attr.rs:4:13
+  |
+4 | #[enum_kind(unknown)]
+  |             ^^^^^^^

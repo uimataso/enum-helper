@@ -1,0 +1,11 @@
+error: duplicate enum_str attribute `alias_all` value `"lowercase"`
+ --> tests/ui/enum_str_duplicated_alias.rs:5:24
+  |
+5 | #[enum_str(alias_all = "lowercase")]
+  |                        ^^^^^^^^^^^
+
+error: duplicate enum_str attribute `alias` value `"bar"`
+ --> tests/ui/enum_str_duplicated_alias.rs:8:24
+  |
+8 |     #[enum_str(alias = "bar")]
+  |                        ^^^^^

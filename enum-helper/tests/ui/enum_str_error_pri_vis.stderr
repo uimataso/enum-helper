@@ -1,0 +1,12 @@
+error[E0603]: struct `InvalidPriInner` is private
+  --> tests/ui/enum_str_error_pri_vis.rs:11:20
+   |
+11 |     let _ = inner::InvalidPriInner::new("");
+   |                    ^^^^^^^^^^^^^^^ private struct
+   |
+note: the struct `InvalidPriInner` is defined here
+  --> tests/ui/enum_str_error_pri_vis.rs:4:14
+   |
+4  |     #[derive(EnumStr, PartialEq, Eq)]
+   |              ^^^^^^^
+   = note: this error originates in the derive macro `EnumStr` (in Nightly builds, run with -Z macro-backtrace for more info)

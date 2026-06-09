@@ -1,0 +1,5 @@
+error[E0433]: failed to resolve: use of undeclared type `InvalidNoErrorStruct`
+  --> tests/ui/enum_str_no_parsing_no_error_struct.rs:10:13
+   |
+10 |     let _ = InvalidNoErrorStruct::new("test");
+   |             ^^^^^^^^^^^^^^^^^^^^ use of undeclared type `InvalidNoErrorStruct`
