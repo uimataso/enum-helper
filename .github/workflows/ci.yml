@@ -43,6 +43,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "1.85"
+          components: rustfmt
       - run: cargo fmt --check
 
   clippy:
@@ -52,4 +53,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "1.85"
+          components: clippy
       - run: cargo clippy -- -D warnings
