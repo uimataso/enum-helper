@@ -218,8 +218,9 @@ enum Foo {
 }
 ```
 
-For data-carrying enums, since `EnumStr` doesn't support non-unit variants, you can use `EnumKind` to generate a unit kind enum and then derive `EnumStr` on it.
-Note that the `rename_all` rule must be specified for both `serde` and `enum_str` separately (unfortunately):
+For data-carrying enums, since `EnumStr` doesn't support non-unit variants, you need to use `EnumKind` to generate a unit kind enum and then derive `EnumStr` on it.
+
+Also note that the rename rule must be specified for both `serde` and `enum_str` separately (unfortunately):
 
 ```rust
 #[derive(Clone, EnumKind, Serialize, Deserialize)]
