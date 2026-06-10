@@ -181,7 +181,7 @@ enum Foo {
 If you want, you can provide your own error type for `FromStr` / `TryFrom<&str>`:
 
 1. Add `#[enum_str(no_error_struct)]` to skip the generated error struct.
-2. Define a type named `Invalid{EnumName}`, or use `#[enum_str(error_name = YourError)]`.
+2. Define a type named `Invalid{Enum}`, or use `#[enum_str(error_name = YourError)]`.
 3. Implement `YourError::new(input: &str) -> Self` and `fmt::Display`.
 
 For example:
