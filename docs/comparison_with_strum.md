@@ -39,4 +39,4 @@ Of course, I could just write a simple `macro_rules`, or try to push a change up
 
 This crate also has a different taste on the API.
 
-For example, instead of deriving these separately: `#[derive(EnumString, AsRefStr, IntoStaticStr)]`, I just want one `EnumStr`.
+For example, instead of deriving these separately: `#[derive(EnumString, AsRefStr, IntoStaticStr)]`, I just want one `#[derive(EnumStr)]`.
