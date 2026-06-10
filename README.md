@@ -27,6 +27,13 @@ The `derive` feature is enabled by default, disable with `default-features = fal
 
 - `derive` (default): re-exports derive macros
 
+## Similar crates
+
+- [`strum`](https://github.com/Peternator7/strum): the most feature-rich enum derive crate ([comparison](docs/comparison_with_strum.md))
+- [`enum-kinds`](https://github.com/Soft/enum-kinds): generates a unit kind enum (similar to [`EnumKind`](docs/enum_kind.md))
+- [`enum-iterator`](https://github.com/stephaneyfx/enum-iterator): iterate over all variants (similar to [`EnumAll`](docs/enum_all.md))
+- [`derive_more`](https://github.com/JelteF/derive_more): general-purpose derive macros
+
 #### License
 
 <sup>
