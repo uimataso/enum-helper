@@ -83,7 +83,7 @@ impl TryFrom<&str> for Foo {
 
 ### `#[enum_str(rename_all = "...")]`
 
-Rename all variants according to a case convention. Available values:
+Rename all variants by rule. Available values:
 
 - `lowercase`
 - `UPPERCASE`
@@ -96,7 +96,7 @@ Rename all variants according to a case convention. Available values:
 
 ### `#[enum_str(alias_all = "...")]`
 
-Add aliases to every variant according to a case convention.
+Add aliases to every variant by rule.
 Can be specified multiple times.
 See `rename_all` for available values.
 
@@ -181,7 +181,7 @@ enum Foo {
 If you want, you can provide your own error type for `FromStr` / `TryFrom<&str>`:
 
 1. Add `#[enum_str(no_error_struct)]` to skip the generated error struct.
-2. Define a type named `Invalid{EnumName}`, or use `#[enum_str(error_name = YourError)]`.
+2. Define a type named `Invalid{Enum}`, or use `#[enum_str(error_name = YourError)]`.
 3. Implement `YourError::new(input: &str) -> Self` and `fmt::Display`.
 
 For example:
@@ -201,5 +201,34 @@ impl fmt::Display for YourOwnError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "my own error: {}", self.input)
     }
+}
+```
+
+## Work with `serde`
+
+For unit enums, just add `#[serde(try_from = "&str", into = "&'static str")]`:
+
+For example:
+
+```rust
+#[derive(Clone, EnumStr, Serialize, Deserialize)]
+#[serde(try_from = "&str", into = "&'static str")]
+enum Foo {
+    Bar,
+}
+```
+
+For data-carrying enums, since `EnumStr` doesn't support non-unit variants, you need to use `EnumKind` to generate a unit kind enum and then derive `EnumStr` on it.
+
+Also note that the rename rule must be specified for both `serde` and `enum_str` separately (unfortunately):
+
+```rust
+#[derive(Clone, EnumKind, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data")]
+#[serde(rename_all = "lowercase")]
+#[enum_kind(attr(derive(EnumStr)))]
+#[enum_kind(attr(enum_str(rename_all = "lowercase")))]
+enum Foo {
+    Bar { x: usize },
 }
 ```
