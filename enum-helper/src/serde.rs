@@ -48,7 +48,7 @@ pub mod enum_str {
         T::Err: std::error::Error,
     {
         // String is used instead of &str because zero-copy deserialization
-        // is not always possible (e.g., from serde_json::Value).
+        // is not always possible
         let s = String::deserialize(de)?;
         T::from_str(&s).map_err(serde::de::Error::custom)
     }
