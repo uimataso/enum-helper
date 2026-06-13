@@ -235,11 +235,6 @@ enum Foo {
 
 For using an `EnumStr` type in a struct field, enable the `serde` feature and use `#[serde(with = "...")]`:
 
-```toml
-[dependencies]
-enum-helper = { version = "0.1", features = ["serde"] }
-```
-
 ```rust
 #[derive(Serialize, Deserialize)]
 struct MyStruct {
