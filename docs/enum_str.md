@@ -232,3 +232,20 @@ enum Foo {
     Bar { x: usize },
 }
 ```
+
+For using an `EnumStr` type in a struct field, enable the `serde` feature and use `#[serde(with = "...")]`:
+
+```toml
+[dependencies]
+enum-helper = { version = "0.1", features = ["serde"] }
+```
+
+```rust
+#[derive(Serialize, Deserialize)]
+struct MyStruct {
+    #[serde(with = "enum_helper::serde::enum_str")]
+    foo: Foo,
+    #[serde(with = "enum_helper::serde::option_enum_str")]
+    maybe_foo: Option<Foo>,
+}
+```
