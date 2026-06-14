@@ -75,23 +75,11 @@ fn gen_impl_into_str(ir: &Ir<'_>) -> TokenStream {
     let ident = &ir.ident;
     let (impl_generics, ty_generics, where_clause) = &ir.generics.split_for_impl();
 
-    let arms: Vec<_> = ir
-        .variants
-        .iter()
-        .map(|v| {
-            let v_ident = &v.ident;
-            let name = &v.name;
-            quote! { #ident::#v_ident => #name  }
-        })
-        .collect();
-
     quote! {
         #[automatically_derived]
         impl #impl_generics ::core::convert::From<#ident #ty_generics> for &'static str #where_clause {
             fn from(value: #ident #ty_generics) -> Self {
-                match value {
-                    #(#arms,)*
-                }
+                ::enum_helper::EnumStr::as_name(&value)
             }
         }
     }
@@ -101,23 +89,11 @@ fn gen_impl_as_ref_str(ir: &Ir<'_>) -> TokenStream {
     let ident = &ir.ident;
     let (impl_generics, ty_generics, where_clause) = &ir.generics.split_for_impl();
 
-    let arms: Vec<_> = ir
-        .variants
-        .iter()
-        .map(|v| {
-            let v_ident = &v.ident;
-            let name = &v.name;
-            quote! { Self::#v_ident => #name  }
-        })
-        .collect();
-
     quote! {
         #[automatically_derived]
         impl #impl_generics ::core::convert::AsRef<str> for #ident #ty_generics #where_clause {
             fn as_ref(&self) -> &str {
-                match self {
-                    #(#arms,)*
-                }
+                ::enum_helper::EnumStr::as_name(self)
             }
         }
     }
@@ -262,25 +238,13 @@ fn gen_impl_try_from_str(ir: &Ir<'_>) -> TokenStream {
     let (impl_generics, ty_generics, where_clause) = &ir.generics.split_for_impl();
     let error_ident = &ir.error.ident;
 
-    let arms: Vec<_> = ir
-        .variants
-        .iter()
-        .flat_map(|v| v.aliases.iter().map(|a| (&v.ident, a.as_str())))
-        .map(|(i, a)| {
-            quote! { #a => ::core::result::Result::Ok(Self::#i) }
-        })
-        .collect();
-
     quote! {
         #[automatically_derived]
         impl #impl_generics ::core::convert::TryFrom<&str> for #ident #ty_generics #where_clause {
             type Error = #error_ident;
 
             fn try_from(value: &str) -> ::core::result::Result<Self, <Self as ::core::convert::TryFrom<&str>>::Error> {
-                match value {
-                    #(#arms,)*
-                    _ => ::core::result::Result::Err(#error_ident::new(value)),
-                }
+                ::core::str::FromStr::from_str(value)
             }
         }
     }
