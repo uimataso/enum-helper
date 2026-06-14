@@ -12,7 +12,7 @@ This crate provides derive macros that generate common boilerplate for enums.
 
 ```toml
 [dependencies]
-enum-helper = "0.1"
+enum-helper = "0.2"
 ```
 
 The `derive` feature is enabled by default, disable with `default-features = false` if you only need the traits.
