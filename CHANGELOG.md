@@ -1,0 +1,17 @@
+# Changelog
+
+## [0.2.0] - 2026-06-14
+
+### Added
+
+- `#[enum_str(default)]` container attribute: enable non-unit enum support, fills all fields with default values when parsing ([#6])
+- `#[enum_str(skip)]` variant attribute: exclude a variant from parsing ([#6])
+- `serde` feature flag: provides `enum_helper::serde::enum_str` and `enum_helper::serde::option_enum_str` helpers for `#[serde(with)]` ([#4])
+
+### Changed
+
+- `From<T> for &str`, `AsRef<str> for T`, and `TryFrom<&str> for T` now delegate to existing `EnumStr` trait methods instead of generating duplicate match arms ([#5])
+
+[#6]: https://github.com/uimataso/enum-helper/pull/6
+[#5]: https://github.com/uimataso/enum-helper/pull/5
+[#4]: https://github.com/uimataso/enum-helper/pull/4
