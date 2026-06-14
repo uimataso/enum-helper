@@ -15,10 +15,14 @@
 //! ## Feature flags
 //!
 //! - `derive` (default): re-exports derive macros
+//! - `serde`: provides serde helpers for use with [`EnumStr`]
 //!
 //! [`EnumStr`]: derive@enum_helper_derive::EnumStr
 //! [`EnumAll`]: derive@enum_helper_derive::EnumAll
 //! [`EnumKind`]: derive@enum_helper_derive::EnumKind
+
+#[cfg(feature = "serde")]
+pub mod serde;
 
 #[cfg(feature = "derive")]
 pub use enum_helper_derive::EnumAll;
