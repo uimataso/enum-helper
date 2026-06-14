@@ -8,6 +8,7 @@ pub struct Symbol(&'static str);
 pub const ALIAS_ALL: Symbol = Symbol("alias_all");
 pub const ALIAS: Symbol = Symbol("alias");
 pub const ATTR: Symbol = Symbol("attr");
+pub const DEFAULT: Symbol = Symbol("default");
 pub const ENUM_ALL: Symbol = Symbol("enum_all");
 pub const ENUM_KIND: Symbol = Symbol("enum_kind");
 pub const ENUM_STR: Symbol = Symbol("enum_str");

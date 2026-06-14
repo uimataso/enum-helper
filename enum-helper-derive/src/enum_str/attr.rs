@@ -10,6 +10,7 @@ use crate::{
 pub struct EnumAttr {
     pub rename_all: AttrVal<RenameRule>,
     pub alias_all: AttrVec<RenameRule>,
+    pub default: AttrBool,
     pub error_name: AttrVal<syn::Ident>,
     pub error_msg: AttrVal<Vec<TemplateSegment<ErrorMsgVar>>>,
     pub no_rendering: AttrBool,
@@ -20,6 +21,7 @@ pub struct EnumAttr {
 pub struct VariantAttr {
     pub rename: AttrVal<syn::LitStr>,
     pub alias: AttrVec<syn::LitStr>,
+    pub skip: AttrBool,
 }
 
 impl EnumAttr {
@@ -29,6 +31,7 @@ impl EnumAttr {
         let mut ret = Self {
             rename_all: AttrVal::new(ENUM_STR, RENAME_ALL),
             alias_all: AttrVec::new(ENUM_STR, ALIAS_ALL),
+            default: AttrBool::new(ENUM_STR, DEFAULT),
             error_name: AttrVal::new(ENUM_STR, ERROR_NAME),
             error_msg: AttrVal::new(ENUM_STR, ERROR_MSG),
             no_rendering: AttrBool::new(ENUM_STR, NO_RENDERING),
@@ -54,6 +57,8 @@ impl EnumAttr {
                 } else if meta.path == ret.alias_all.name() {
                     let p = |s: syn::LitStr| RenameRule::from_str(&s.value());
                     ret.alias_all.try_from_meta(cx, &meta, p);
+                } else if meta.path == ret.default.name() {
+                    ret.default.try_from_meta(cx, &meta);
                 } else if meta.path == ret.error_name.name() {
                     let p = |i: syn::Ident| Result::<_, &str>::Ok(i);
                     ret.error_name.try_from_meta(cx, &meta, p);
@@ -98,6 +103,7 @@ impl VariantAttr {
         let mut ret = Self {
             rename: AttrVal::new(ENUM_STR, RENAME),
             alias: AttrVec::new(ENUM_STR, ALIAS),
+            skip: AttrBool::new(ENUM_STR, SKIP),
         };
 
         for attr in attrs {
@@ -118,6 +124,8 @@ impl VariantAttr {
                 } else if meta.path == ret.alias.name() {
                     let p = |s: syn::LitStr| Result::<_, &str>::Ok(s);
                     ret.alias.try_from_meta(cx, &meta, p);
+                } else if meta.path == ret.skip.name() {
+                    ret.skip.try_from_meta(cx, &meta);
                 } else {
                     let path = meta.path.to_token_stream().to_string().replace(' ', "");
                     let msg = format!("unknown {} variant attribute `{}`", ENUM_STR, path);

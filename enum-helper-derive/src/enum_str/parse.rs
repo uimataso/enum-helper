@@ -18,7 +18,7 @@ pub fn parse_ir(input: &syn::DeriveInput) -> syn::Result<Ir<'_>> {
     let syn::Data::Enum(data_enum) = &input.data else {
         return Err(syn::Error::new(
             Span::call_site(),
-            "EnumStr only supports unit enum",
+            "EnumStr only supports enum",
         ));
     };
 
@@ -27,19 +27,21 @@ pub fn parse_ir(input: &syn::DeriveInput) -> syn::Result<Ir<'_>> {
     let enum_attr = EnumAttr::from_attrs(&cx, &input.attrs);
 
     let mut variants = Vec::new();
-    let mut is_unit_enum = true;
+    let mut has_non_skip_non_unit_variant = false;
     for variant in &data_enum.variants {
         let v_ir = parse_variant_ir(&cx, variant, &enum_attr);
-        if !v_ir.is_unit {
-            is_unit_enum = false;
+
+        if !(matches!(v_ir.fields, syn::Fields::Unit) || v_ir.skip) {
+            has_non_skip_non_unit_variant = true;
         }
+
         variants.push(v_ir);
     }
 
-    if !is_unit_enum {
+    if !enum_attr.default.get() && has_non_skip_non_unit_variant {
         cx.syn_error(syn::Error::new(
             Span::call_site(),
-            "EnumStr only supports unit enum",
+            "EnumStr only supports unit enum by default, use #[enum_str(default)] or #[enum_str(skip)] to opt-in non-unit enum support, or using EnumKind to generate unit enum",
         ));
     };
 
@@ -66,8 +68,12 @@ pub fn parse_ir(input: &syn::DeriveInput) -> syn::Result<Ir<'_>> {
     })
 }
 
-fn parse_variant_ir(cx: &Ctxt, variant: &syn::Variant, enum_attr: &EnumAttr) -> VariantIr {
-    let ident = variant.ident.clone();
+fn parse_variant_ir<'a>(
+    cx: &Ctxt,
+    variant: &'a syn::Variant,
+    enum_attr: &EnumAttr,
+) -> VariantIr<'a> {
+    let ident = &variant.ident;
     let ident_str = ident.to_string();
 
     let attr = VariantAttr::from_attrs(cx, &variant.attrs);
@@ -98,13 +104,12 @@ fn parse_variant_ir(cx: &Ctxt, variant: &syn::Variant, enum_attr: &EnumAttr) -> 
         ret
     };
 
-    let is_unit = matches!(variant.fields, syn::Fields::Unit);
-
     VariantIr {
         ident,
         name,
         aliases,
-        is_unit,
+        fields: &variant.fields,
+        skip: attr.skip.get(),
     }
 }
 
@@ -119,7 +124,7 @@ fn check_name_ambiguous(cx: &Ctxt, variants: &[VariantIr]) {
                     "ambiguous name `{}` between `{}` and `{}`",
                     name, v.ident, variant.ident
                 );
-                cx.error_spanned_by(&variant.ident, msg);
+                cx.error_spanned_by(variant.ident, msg);
                 continue;
             }
 
