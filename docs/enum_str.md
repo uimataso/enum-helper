@@ -1,6 +1,6 @@
 # `EnumStr`
 
-Derive the [`EnumStr`](enum_helper::EnumStr) trait to convert between a unit enum and string.
+Derive the [`EnumStr`](enum_helper::EnumStr) trait to convert between an enum and string.
 
 ```rust
 use enum_helper::EnumStr;
@@ -110,6 +110,22 @@ enum Foo {
 // "Bar", "bar", and "BAR" all parse to Foo::Bar
 ```
 
+### `#[enum_str(default)]`
+
+All non-unit variants will use `Default` for their field values during parsing.
+
+```rust
+#[derive(EnumStr)]
+#[enum_str(default)]
+enum Foo {
+    Bar { x: usize }
+    Baz(String)
+}
+
+// "Bar" -> Foo::Bar { x: Default::default() }
+// "Baz" -> Foo::Baz(Default::default())
+```
+
 ### `#[enum_str(error_name = InvalidFoo)]`
 
 Customize the generated error struct's name.
@@ -176,6 +192,14 @@ enum Foo {
 // "Bar", "b", and "bar" all parse to Foo::Bar
 ```
 
+### `#[enum_str(skip)]`
+
+Excludes a variant.
+
+Note, this will only affect "parsing", e.g. from string to enum.
+Rendering will not be affected.
+Meaning, if you have a value which is a skipped variant, `as_name`, `as_aliases`, `AsRef<str>` etc will still work.
+
 ## Bring your own error
 
 If you want, you can provide your own error type for `FromStr` / `TryFrom<&str>`:
@@ -218,7 +242,7 @@ enum Foo {
 }
 ```
 
-For data-carrying enums, since `EnumStr` doesn't support non-unit variants, you need to use `EnumKind` to generate a unit kind enum and then derive `EnumStr` on it.
+For data-carrying enums, since `EnumStr` doesn't support parsing non-unit variants's values, the best way is use `EnumKind` to generate a unit kind enum and then derive `EnumStr` on it.
 
 Also note that the rename rule must be specified for both `serde` and `enum_str` separately (unfortunately):
 

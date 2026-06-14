@@ -11,7 +11,7 @@ pub struct Ir<'a> {
     vis: &'a syn::Visibility,
     generics: &'a syn::Generics,
     error: ErrorIr,
-    variants: Vec<VariantIr>,
+    variants: Vec<VariantIr<'a>>,
 
     gen_rendering: bool,
     gen_parsing: bool,
@@ -24,10 +24,11 @@ pub struct ErrorIr {
     error_template: Vec<TemplateSegment<ErrorMsgVar>>,
 }
 
-pub struct VariantIr {
-    ident: syn::Ident,
+pub struct VariantIr<'a> {
+    ident: &'a syn::Ident,
     name: String,
     /// include `name`
     aliases: Vec<String>,
-    is_unit: bool,
+    fields: &'a syn::Fields,
+    skip: bool,
 }

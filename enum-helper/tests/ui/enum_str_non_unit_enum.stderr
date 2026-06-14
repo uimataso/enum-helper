@@ -1,4 +1,4 @@
-error: EnumStr only supports unit enum
+error: EnumStr only supports unit enum by default, use #[enum_str(default)] or #[enum_str(skip)] to opt-in non-unit enum support, or using EnumKind to generate unit enum
  --> tests/ui/enum_str_non_unit_enum.rs:3:10
   |
 3 | #[derive(EnumStr)]

@@ -39,7 +39,12 @@ fn gen_impl_enum_str(ir: &Ir<'_>) -> TokenStream {
         .map(|v| {
             let v_ident = &v.ident;
             let name = &v.name;
-            quote! { Self::#v_ident => #name  }
+            let pat = match v.fields {
+                syn::Fields::Named(_) => quote! { Self::#v_ident {..} },
+                syn::Fields::Unnamed(_) => quote! { Self::#v_ident(..) },
+                syn::Fields::Unit => quote! { Self::#v_ident },
+            };
+            quote! { #pat => #name  }
         })
         .collect();
 
@@ -49,7 +54,12 @@ fn gen_impl_enum_str(ir: &Ir<'_>) -> TokenStream {
         .map(|v| {
             let v_ident = &v.ident;
             let alias = &v.aliases;
-            quote! { Self::#v_ident => &[#(#alias),*] }
+            let pat = match v.fields {
+                syn::Fields::Named(_) => quote! { Self::#v_ident {..} },
+                syn::Fields::Unnamed(_) => quote! { Self::#v_ident(..) },
+                syn::Fields::Unit => quote! { Self::#v_ident },
+            };
+            quote! { #pat => &[#(#alias),*] }
         })
         .collect();
 
@@ -209,12 +219,35 @@ fn gen_impl_from_str(ir: &Ir<'_>) -> TokenStream {
     let (impl_generics, ty_generics, where_clause) = &ir.generics.split_for_impl();
     let error_ident = &ir.error.ident;
 
+    let default_val = quote! { ::core::default::Default::default() };
+
     let arms: Vec<_> = ir
         .variants
         .iter()
-        .flat_map(|v| v.aliases.iter().map(|a| (&v.ident, a.as_str())))
-        .map(|(i, a)| {
-            quote! { #a => ::core::result::Result::Ok(Self::#i) }
+        .filter(|v| !v.skip)
+        .map(|v| {
+            let v_ident = &v.ident;
+            let aliases = &v.aliases;
+            let pat = quote! { #(#aliases)|* };
+            let val = match v.fields {
+                syn::Fields::Named(f) => {
+                    let fields: Vec<_> = f
+                        .named
+                        .iter()
+                        .map(|x| {
+                            let i = x.ident.clone().expect("named field should have ident");
+                            quote! { #i: #default_val }
+                        })
+                        .collect();
+                    quote! { Self::#v_ident { #(#fields),* } }
+                }
+                syn::Fields::Unnamed(f) => {
+                    let fields = std::iter::repeat_n(default_val.clone(), f.unnamed.len());
+                    quote! { Self::#v_ident(#(#fields),*) }
+                }
+                syn::Fields::Unit => quote! { Self::#v_ident },
+            };
+            quote! { #pat => ::core::result::Result::Ok(#val) }
         })
         .collect();
 
