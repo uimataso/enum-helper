@@ -112,7 +112,8 @@ enum Foo {
 
 ### `#[enum_str(default)]`
 
-All non-unit variants will use `Default` for their field values during parsing.
+Enable non-unit enum support.
+When parsing non-unit variants, fills all field with default value.
 
 ```rust
 #[derive(EnumStr)]
@@ -195,6 +196,7 @@ enum Foo {
 ### `#[enum_str(skip)]`
 
 Excludes a variant.
+Can be used to skip non-unit variants.
 
 Note, this will only affect "parsing", e.g. from string to enum.
 Rendering will not be affected.

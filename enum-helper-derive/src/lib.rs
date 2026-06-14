@@ -34,7 +34,7 @@ use syn::{DeriveInput, parse_macro_input};
 ///
 /// - `#[enum_str(rename_all = "snake_case")]`: rename all variants by rule
 /// - `#[enum_str(alias_all = "lowercase")]`: add aliases to all variants by rule (repeatable)
-/// - `#[enum_str(default)]`: use default value for non-unit variants
+/// - `#[enum_str(default)]`: fills non-unit variant's fields with default value during parsing
 /// - `#[enum_str(error_name = InvalidFoo)]`: custom error type name (default: `Invalid{Enum}`)
 /// - `#[enum_str(error_msg = "…")]`: custom error message template
 /// - `#[enum_str(no_rendering)]`: skip `EnumStr`, `From`, `AsRef` impls
