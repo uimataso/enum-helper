@@ -54,3 +54,51 @@ fn error_msg() {
     test_custom_error_msg!(ErrorMsgListSepSpace, "{names: }", "FooBar Baz");
     test_custom_error_msg!(ErrorMsgListSepQuote, "{names: :`}", "`FooBar` `Baz`");
 }
+
+#[test]
+fn skip_variant_excluded_from_default_error_msg() {
+    #[derive(Debug, EnumStr, PartialEq, Eq)]
+    enum SkipDefaultMsg {
+        FooBar,
+        #[enum_str(skip)]
+        #[allow(dead_code)]
+        Skipped,
+        Baz,
+    }
+
+    let err = "input".parse::<SkipDefaultMsg>().unwrap_err();
+    check!(format!("{err}") == "invalid SkipDefaultMsg, expected one of \"FooBar\", \"Baz\"");
+}
+
+#[test]
+fn skip_variant_excluded_from_error_msg_names() {
+    #[derive(Debug, EnumStr, PartialEq, Eq)]
+    #[enum_str(error_msg = "names: {names}")]
+    enum SkipNamesMsg {
+        FooBar,
+        #[enum_str(skip)]
+        #[allow(dead_code)]
+        Skipped,
+        Baz,
+    }
+
+    let err = "input".parse::<SkipNamesMsg>().unwrap_err();
+    check!(format!("{err}") == "names: \"FooBar\", \"Baz\"");
+}
+
+#[test]
+fn skip_variant_excluded_from_error_msg_aliases() {
+    #[derive(Debug, EnumStr, PartialEq, Eq)]
+    #[enum_str(error_msg = "aliases: {aliases}")]
+    enum SkipAliasesMsg {
+        #[enum_str(alias = "foo_bar")]
+        FooBar,
+        #[enum_str(skip)]
+        #[allow(dead_code)]
+        Skipped,
+        Baz,
+    }
+
+    let err = "input".parse::<SkipAliasesMsg>().unwrap_err();
+    check!(format!("{err}") == "aliases: \"FooBar\", \"foo_bar\", \"Baz\"");
+}

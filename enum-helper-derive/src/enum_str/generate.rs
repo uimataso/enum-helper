@@ -164,6 +164,7 @@ fn gen_error_impl_display(ir: &Ir<'_>) -> TokenStream {
                     let names = ir
                         .variants
                         .iter()
+                        .filter(|v| !v.skip)
                         .map(|v| format!("{}{}{}", quote, v.name, quote))
                         .collect::<Vec<_>>()
                         .join(sep);
@@ -174,6 +175,7 @@ fn gen_error_impl_display(ir: &Ir<'_>) -> TokenStream {
                     let aliases = ir
                         .variants
                         .iter()
+                        .filter(|v| !v.skip)
                         .flat_map(|v| v.aliases.iter().map(|a| format!("{}{}{}", quote, a, quote)))
                         .collect::<Vec<_>>()
                         .join(sep);
