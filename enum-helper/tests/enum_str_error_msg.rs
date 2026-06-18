@@ -102,4 +102,3 @@ fn skip_variant_excluded_from_error_msg_aliases() {
     let err = "input".parse::<SkipAliasesMsg>().unwrap_err();
     check!(format!("{err}") == "aliases: \"FooBar\", \"foo_bar\", \"Baz\"");
 }
-
