@@ -29,6 +29,7 @@ use syn::{DeriveInput, parse_macro_input};
 /// - `const ALL_ALIASES: [&'static str; M]`
 /// - `impl From<T> for &'static str`
 /// - `impl AsRef<str> for T`
+/// - `impl Display for T`
 /// - `impl FromStr for T`
 /// - `impl TryFrom<&str> for T`
 /// - Error struct for invalid conversion from str
@@ -38,7 +39,7 @@ use syn::{DeriveInput, parse_macro_input};
 /// - `#[enum_str(rename_all = "snake_case")]`: rename all variants by rule
 /// - `#[enum_str(alias_all = "lowercase")]`: add aliases to all variants by rule (repeatable)
 /// - `#[enum_str(default)]`: fills non-unit variant's fields with default value during parsing
-/// - `#[enum_str(no_rendering)]`: skip `as_name`, `as_aliases`, `ALL_NAMES`, `ALL_ALIASES`, `From`, `AsRef`
+/// - `#[enum_str(no_rendering)]`: skip `as_name`, `as_aliases`, `ALL_NAMES`, `ALL_ALIASES`, `From`, `AsRef`, `Display`
 /// - `#[enum_str(no_parsing)]`: skip `FromStr`, `TryFrom`, and the error struct
 /// - `#[enum_str(as_name(name = ..., vis = "...", enable/disable))]`: control the `as_name` method
 /// - `#[enum_str(as_aliases(...))]`: control the `as_aliases` method
@@ -46,6 +47,7 @@ use syn::{DeriveInput, parse_macro_input};
 /// - `#[enum_str(all_aliases(...))]`: control the `ALL_ALIASES` constant
 /// - `#[enum_str(impl_into_static_str(enable/disable))]`: control `impl From<T> for &'static str`
 /// - `#[enum_str(impl_as_ref_str(enable/disable))]`: control `impl AsRef<str> for T`
+/// - `#[enum_str(impl_display(enable/disable))]`: control `impl std::fmt::Display for T`
 /// - `#[enum_str(impl_from_str(enable/disable))]`: control `impl FromStr for T`
 /// - `#[enum_str(impl_try_from_str(enable/disable))]`: control `impl TryFrom<&str> for T`
 /// - `#[enum_str(error(name = ..., vis = "...", enable/disable))]`: control the error struct (default name `Invalid{Enum}`)

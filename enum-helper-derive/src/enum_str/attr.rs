@@ -19,6 +19,7 @@ pub struct EnumAttr {
 
     pub impl_into_static_str: ImplAttr,
     pub impl_as_ref_str: ImplAttr,
+    pub impl_display: ImplAttr,
     pub impl_from_str: ImplAttr,
     pub impl_try_from_str: ImplAttr,
 
@@ -51,6 +52,7 @@ impl EnumAttr {
 
             impl_into_static_str: ImplAttr::new(ENUM_STR, IMPL_INTO_STATIC_STR),
             impl_as_ref_str: ImplAttr::new(ENUM_STR, IMPL_AS_REF_STR),
+            impl_display: ImplAttr::new(ENUM_STR, IMPL_DISPLAY),
             impl_from_str: ImplAttr::new(ENUM_STR, IMPL_FROM_STR),
             impl_try_from_str: ImplAttr::new(ENUM_STR, IMPL_TRY_FROM_STR),
 
@@ -93,6 +95,8 @@ impl EnumAttr {
                     ret.impl_into_static_str.try_from_meta(cx, &meta)
                 } else if meta.path == ret.impl_as_ref_str.name() {
                     ret.impl_as_ref_str.try_from_meta(cx, &meta)
+                } else if meta.path == ret.impl_display.name() {
+                    ret.impl_display.try_from_meta(cx, &meta)
                 } else if meta.path == ret.impl_from_str.name() {
                     ret.impl_from_str.try_from_meta(cx, &meta)
                 } else if meta.path == ret.impl_try_from_str.name() {

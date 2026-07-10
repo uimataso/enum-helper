@@ -42,6 +42,10 @@ impl AsRef<str> for Foo {
     fn as_ref(&self) -> &str { ... }
 }
 
+impl fmt::Display for Foo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { ... }
+}
+
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct InvalidFoo {}
@@ -141,6 +145,7 @@ Skip all rendering. Equivalent to disabling:
 - `ALL_ALIASES`
 - `impl From<T> for &'static str`
 - `impl AsRef<str> for T`
+- `impl Display for T`
 
 ### `#[enum_str(no_parsing)]`
 
@@ -183,6 +188,11 @@ Enabled by default, disabled by `no_rendering`.
 ### `#[enum_str(impl_as_ref_str(enable/disable))]`
 
 Control `impl AsRef<str> for T`.
+Enabled by default, disabled by `no_rendering`.
+
+### `#[enum_str(impl_display(enable/disable))]`
+
+Control `impl std::fmt::Display for T`, which writes the variant's name.
 Enabled by default, disabled by `no_rendering`.
 
 ### `#[enum_str(impl_from_str(enable/disable))]`

@@ -21,6 +21,7 @@ pub struct GenOptions {
     const_all_aliases: Option<GenOption>,
     impl_into_static_str: bool,
     impl_as_ref_str: bool,
+    impl_display: bool,
     impl_from_str: bool,
     impl_try_from_str: bool,
 }

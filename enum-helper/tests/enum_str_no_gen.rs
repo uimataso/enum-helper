@@ -46,6 +46,12 @@ impl AsRef<str> for NoRendering {
     }
 }
 
+impl fmt::Display for NoRendering {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "test")
+    }
+}
+
 // no_parsing: derive must not generate FromStr/TryFrom/error struct.
 // We provide our own and confirm there is no conflict.
 #[derive(EnumStr, PartialEq, Eq)]

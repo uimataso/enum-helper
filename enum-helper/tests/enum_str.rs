@@ -63,6 +63,12 @@ fn basic_case_try_from_str() {
     check!(BasicCase::try_from("baz").is_err());
 }
 
+#[test]
+fn basic_case_display() {
+    check!(format!("{}", BasicCase::FooBar) == "FooBar");
+    check!(format!("{}", BasicCase::Baz) == "Baz");
+}
+
 #[derive(EnumStr, PartialEq, Eq)]
 enum SpecialName {
     #[allow(non_camel_case_types)]

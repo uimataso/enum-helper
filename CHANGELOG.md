@@ -12,6 +12,9 @@ reference and migration guide.
   trait impls (`From`, `AsRef`, `FromStr`, `TryFrom`) instead.
 - Each generated item is now individually toggleable via
   `enable`/`disable` attributes.
+- `EnumStr` now derives `Display` for the enum (writes the variant's
+  name); toggleable via `#[enum_str(impl_display(enable/disable))]`,
+  disabled by `no_rendering`.
 - Removed the `serde` feature; use the generated `FromStr`/`TryFrom`
   impls with your own error type.
 - `EnumAll` now generates `ALL`/`COUNT` constants
