@@ -36,6 +36,7 @@
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
+            just
             cargo-sort
             cargo-nextest
 
