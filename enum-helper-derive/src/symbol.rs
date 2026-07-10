@@ -23,6 +23,7 @@ pub const ENUM_STR: Symbol = Symbol("enum_str");
 pub const ERROR_MSG: Symbol = Symbol("error_msg");
 pub const ERROR: Symbol = Symbol("error");
 pub const IMPL_AS_REF_STR: Symbol = Symbol("impl_as_ref_str");
+pub const IMPL_DISPLAY: Symbol = Symbol("impl_display");
 pub const IMPL_FROM_STR: Symbol = Symbol("impl_from_str");
 pub const IMPL_INTO_STATIC_STR: Symbol = Symbol("impl_into_static_str");
 pub const IMPL_TRY_FROM_STR: Symbol = Symbol("impl_try_from_str");

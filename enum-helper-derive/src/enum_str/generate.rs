@@ -13,6 +13,7 @@ pub fn generate(ir: Ir<'_>) -> TokenStream {
     if ir.gen_options.fn_as_name.is_some()
         || ir.gen_options.impl_into_static_str
         || ir.gen_options.impl_as_ref_str
+        || ir.gen_options.impl_display
     {
         blocks.push(gen_fn_inner_as_name(&ir));
     }
@@ -37,6 +38,9 @@ pub fn generate(ir: Ir<'_>) -> TokenStream {
     }
     if ir.gen_options.impl_as_ref_str {
         blocks.push(gen_impl_as_ref_str(&ir));
+    }
+    if ir.gen_options.impl_display {
+        blocks.push(gen_impl_display(&ir));
     }
 
     if ir.error.gen_error_struct {
@@ -258,6 +262,20 @@ fn gen_impl_as_ref_str(ir: &Ir<'_>) -> TokenStream {
         impl #impl_generics ::core::convert::AsRef<str> for #ident #ty_generics #where_clause {
             fn as_ref(&self) -> &str {
                 self.__enum_str_as_name()
+            }
+        }
+    }
+}
+
+fn gen_impl_display(ir: &Ir<'_>) -> TokenStream {
+    let ident = &ir.ident;
+    let (impl_generics, ty_generics, where_clause) = &ir.generics.split_for_impl();
+
+    quote! {
+        #[automatically_derived]
+        impl #impl_generics ::core::fmt::Display for #ident #ty_generics #where_clause {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                ::core::fmt::Display::fmt(self.__enum_str_as_name(), f)
             }
         }
     }

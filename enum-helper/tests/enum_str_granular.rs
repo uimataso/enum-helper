@@ -1,4 +1,5 @@
 use assert2::check;
+use core::fmt;
 use enum_helper::EnumStr;
 
 // Custom method names via `name = ...`. The generated `Into<&'static str>` and
@@ -52,6 +53,28 @@ enum NoParse {
 fn no_parse_keeps_rendering() {
     check!(NoParse::Foo.as_name() == "Foo");
     check!(NoParse::ALL_NAMES == ["Foo"]);
+}
+
+// Disabling `impl_display` removes the generated `Display` impl; the user can
+// provide their own without conflict. Other rendering still works.
+#[derive(EnumStr, PartialEq, Eq)]
+#[enum_str(impl_display(disable))]
+enum NoDisplay {
+    Foo,
+}
+
+impl fmt::Display for NoDisplay {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "custom")
+    }
+}
+
+#[test]
+fn no_display_keeps_other_rendering() {
+    check!(NoDisplay::Foo.as_name() == "Foo");
+    let s: &str = NoDisplay::Foo.as_ref();
+    check!(s == "Foo");
+    check!(format!("{}", NoDisplay::Foo) == "custom");
 }
 
 // Disabling conversion impls while keeping as_name.

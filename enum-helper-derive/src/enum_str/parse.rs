@@ -178,6 +178,7 @@ fn make_gen_options(input: &syn::DeriveInput, enum_attr: EnumAttr) -> GenOptions
 
     let impl_into_static_str = enum_attr.impl_into_static_str.enabled_or(rendering);
     let impl_as_ref_str = enum_attr.impl_as_ref_str.enabled_or(rendering);
+    let impl_display = enum_attr.impl_display.enabled_or(rendering);
 
     let impl_from_str = enum_attr.impl_from_str.enabled_or(parsing);
     let impl_try_from_str = enum_attr.impl_try_from_str.enabled_or(parsing);
@@ -189,6 +190,7 @@ fn make_gen_options(input: &syn::DeriveInput, enum_attr: EnumAttr) -> GenOptions
         const_all_aliases,
         impl_into_static_str,
         impl_as_ref_str,
+        impl_display,
         impl_from_str,
         impl_try_from_str,
     }
