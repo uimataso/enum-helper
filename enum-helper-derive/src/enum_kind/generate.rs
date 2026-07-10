@@ -7,7 +7,7 @@ pub fn generate(ir: Ir<'_>) -> TokenStream {
     let mut blocks = Vec::new();
 
     blocks.push(gen_kind_struct(&ir));
-    blocks.push(gen_impl_enum_kind(&ir));
+    blocks.push(gen_fn_kind(&ir));
 
     quote! {
         #(#blocks)*
@@ -57,8 +57,9 @@ fn gen_kind_struct(ir: &Ir<'_>) -> TokenStream {
     }
 }
 
-fn gen_impl_enum_kind(ir: &Ir<'_>) -> TokenStream {
+fn gen_fn_kind(ir: &Ir<'_>) -> TokenStream {
     let ident = &ir.ident;
+    let vis = &ir.vis;
     let kind_ident = &ir.kind_ident;
     let (impl_generics, ty_generics, where_clause) = &ir.generics.split_for_impl();
 
@@ -79,9 +80,8 @@ fn gen_impl_enum_kind(ir: &Ir<'_>) -> TokenStream {
 
     quote! {
         #[automatically_derived]
-        impl #impl_generics ::enum_helper::EnumKind for #ident #ty_generics #where_clause {
-            type Kind = #kind_ident;
-            fn kind(&self) -> <Self as ::enum_helper::EnumKind>::Kind {
+        impl #impl_generics #ident #ty_generics #where_clause {
+            #vis const fn kind(&self) -> #kind_ident {
                 match self {
                     #(#arms,)*
                 }

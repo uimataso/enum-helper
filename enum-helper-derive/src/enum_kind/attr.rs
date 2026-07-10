@@ -46,7 +46,7 @@ impl EnumAttr {
                     };
                 } else if meta.path == ret.name.name() {
                     let p = |i: syn::Ident| Result::<_, &str>::Ok(i);
-                    ret.name.try_from_meta(cx, &meta, p);
+                    ret.name.try_from_meta_map(cx, &meta, p);
                 } else if meta.path == ret.no_default_derive.name() {
                     ret.no_default_derive.try_from_meta(cx, &meta);
                 } else {
@@ -96,7 +96,7 @@ impl VariantAttr {
                     };
                 } else if meta.path == ret.rename.name() {
                     let p = |i: syn::Ident| Result::<_, &str>::Ok(i);
-                    ret.rename.try_from_meta(cx, &meta, p);
+                    ret.rename.try_from_meta_map(cx, &meta, p);
                 } else {
                     let path = meta.path.to_token_stream().to_string().replace(' ', "");
                     let msg = format!("unknown {} variant attribute `{}`", ENUM_KIND, path);

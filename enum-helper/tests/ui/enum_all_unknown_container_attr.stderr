@@ -1,0 +1,5 @@
+error: unknown enum_all container attribute `bogus`
+ --> tests/ui/enum_all_unknown_container_attr.rs:2:12
+  |
+2 | #[enum_all(bogus)]
+  |            ^^^^^

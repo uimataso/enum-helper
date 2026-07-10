@@ -1,5 +1,0 @@
-error: enum_str attribute `error_msg` and `no_error_struct` conflicts with each other
- --> tests/ui/enum_str_no_error_struct_conflict_error_msg.rs:4:12
-  |
-4 | #[enum_str(no_error_struct)]
-  |            ^^^^^^^^^^^^^^^

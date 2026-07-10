@@ -167,6 +167,16 @@ fn skip_unit_parsing() {
     check!("Charlie".parse::<SkipUnit>().is_err());
 }
 
+#[test]
+fn skip_unit_excluded_from_all_names() {
+    check!(SkipUnit::ALL_NAMES == ["Alpha", "Bravo"]);
+}
+
+#[test]
+fn skip_unit_excluded_from_all_aliases() {
+    check!(SkipUnit::ALL_ALIASES == ["Alpha", "Bravo"]);
+}
+
 #[derive(EnumStr, PartialEq, Eq, Debug)]
 #[enum_str(rename_all = "lowercase")]
 enum SkipWithRenameAll {

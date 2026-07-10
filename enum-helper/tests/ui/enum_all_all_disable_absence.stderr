@@ -1,0 +1,8 @@
+error[E0599]: no variant or associated item named `ALL` found for enum `Foo` in the current scope
+ --> tests/ui/enum_all_all_disable_absence.rs:9:18
+  |
+4 | enum Foo {
+  | -------- variant or associated item `ALL` not found for this enum
+...
+9 |     let _ = Foo::ALL;
+  |                  ^^^ variant or associated item not found in `Foo`

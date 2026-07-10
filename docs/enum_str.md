@@ -1,6 +1,6 @@
 # `EnumStr`
 
-Derive the [`EnumStr`](enum_helper::EnumStr) trait to convert between an enum and string.
+Generate string conversion for an enum.
 
 ```rust
 use enum_helper::EnumStr;
@@ -15,20 +15,23 @@ pub enum Foo {
 
 // expand to
 
-impl EnumStr for Foo {
-    fn as_name(&self) -> &'static str {
+impl Foo {
+    pub const fn as_name(&self) -> &'static str {
         match self {
             Self::Bar => "bar",
             Self::Baz => "baz",
         }
     }
 
-    fn as_aliases(&self) -> &'static [&'static str] {
+    pub const fn as_aliases(&self) -> &'static [&'static str] {
         match self {
             Self::Bar => &["bar"],
             Self::Baz => &["baz", "bazzz"],
         }
     }
+
+    pub const ALL_NAMES: [&'static str; 2] = ["bar", "baz"];
+    pub const ALL_ALIASES: [&'static str; 3] = ["bar", "baz", "bazzz"];
 }
 
 impl From<Foo> for &'static str {
@@ -40,6 +43,7 @@ impl AsRef<str> for Foo {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct InvalidFoo {}
 
 impl InvalidFoo {
@@ -127,10 +131,77 @@ enum Foo {
 // "Baz" -> Foo::Baz(Default::default())
 ```
 
-### `#[enum_str(error_name = InvalidFoo)]`
+### `#[enum_str(no_rendering)]`
 
-Customize the generated error struct's name.
-Defaults to `Invalid{Enum}`.
+Skip all rendering. Equivalent to disabling:
+
+- `as_name`
+- `as_aliases`
+- `ALL_NAMES`
+- `ALL_ALIASES`
+- `impl From<T> for &'static str`
+- `impl AsRef<str> for T`
+
+### `#[enum_str(no_parsing)]`
+
+Skip all parsing and the error struct. Equivalent to disabling:
+
+- `impl FromStr for T`
+- `impl TryFrom<&str> for T`
+- Error struct generation
+
+### `#[enum_str(as_name(name = ..., vis = "...", enable/disable))]`
+
+Control the `as_name` method.
+
+- `name`: method name, default `as_name`
+- `vis`: method visibility, default to the enum's visibility
+- `enable`/`disable`: generate or skip
+
+Disabling `as_name` does **not** disable `impl From<T> for &'static str` or `impl AsRef<str>` — those delegate to an internal helper, not the public method. Use [`impl_into_static_str(disable)`](#enum_strimpl_into_static_strenable_disable) / [`impl_as_ref_str(disable)`](#enum_strimpl_as_ref_strenable_disable) (or [`no_rendering`](#enum_strno_rendering)) to remove them.
+
+### `#[enum_str(as_aliases(name = ..., vis = "...", enable/disable))]`
+
+Control the `as_aliases` method.
+Same options as `as_name`, default name `as_aliases`.
+
+### `#[enum_str(all_names(name = ..., vis = "...", enable/disable))]`
+
+Control the `ALL_NAMES` constant.
+Default name `ALL_NAMES`.
+
+### `#[enum_str(all_aliases(name = ..., vis = "...", enable/disable))]`
+
+Control the `ALL_ALIASES` constant.
+Default name `ALL_ALIASES`.
+
+### `#[enum_str(impl_into_static_str(enable/disable))]`
+
+Control `impl From<T> for &'static str`.
+Enabled by default, disabled by `no_rendering`.
+
+### `#[enum_str(impl_as_ref_str(enable/disable))]`
+
+Control `impl AsRef<str> for T`.
+Enabled by default, disabled by `no_rendering`.
+
+### `#[enum_str(impl_from_str(enable/disable))]`
+
+Control `impl FromStr for T`.
+Enabled by default, disabled by `no_parsing`.
+
+### `#[enum_str(impl_try_from_str(enable/disable))]`
+
+Control `impl TryFrom<&str> for T`.
+Enabled by default, disabled by `no_parsing`.
+
+### `#[enum_str(error(name = ..., vis = "...", enable/disable))]`
+
+Control the generated error struct.
+
+- `name`: struct name, default `Invalid{Enum}`
+- `vis`: struct visibility, default to the enum's visibility
+- `enable`/`disable`: generate or skip (see [Bring your own error](#bring-your-own-error))
 
 ### `#[enum_str(error_msg = "...")]`
 
@@ -152,26 +223,6 @@ Cannot use `:` as a separator or quote character.
 
 **Limitation:**
 If `{input}` appears in the template, the error struct stores the input as `String`, which requires allocation.
-
-### `#[enum_str(no_rendering)]`
-
-Skip all rendering impls. Equivalent to disabling:
-
-- `impl EnumStr for T`
-- `impl From<T> for &'static str`
-- `impl AsRef<str> for T`
-
-### `#[enum_str(no_parsing)]`
-
-Skip all parsing impls and the error struct. Equivalent to disabling:
-
-- `impl FromStr for T`
-- `impl TryFrom<&str> for T`
-- Error struct generation
-
-### `#[enum_str(no_error_struct)]`
-
-Skip generating the error struct. See [Bring your own error](#bring-your-own-error).
 
 ## Variant attributes
 
@@ -195,26 +246,24 @@ enum Foo {
 
 ### `#[enum_str(skip)]`
 
-Excludes a variant.
+Excludes a variant from parsing and the `ALL_NAMES` / `ALL_ALIASES` constants.
 Can be used to skip non-unit variants.
 
-Note, this will only affect "parsing", e.g. from string to enum.
-Rendering will not be affected.
-Meaning, if you have a value which is a skipped variant, `as_name`, `as_aliases`, `AsRef<str>` etc will still work.
+Rendering is not affected: `as_name`, `as_aliases`, `AsRef<str>` etc still work on a skipped variant value.
 
 ## Bring your own error
 
 If you want, you can provide your own error type for `FromStr` / `TryFrom<&str>`:
 
-1. Add `#[enum_str(no_error_struct)]` to skip the generated error struct.
-2. Define a type named `Invalid{Enum}`, or use `#[enum_str(error_name = YourError)]`.
+1. Add `#[enum_str(error(disable))]` to skip the generated error struct.
+2. Define a type named `Invalid{Enum}`, or use `#[enum_str(error(name = YourError))]`.
 3. Implement `YourError::new(input: &str) -> Self` and `fmt::Display`.
 
 For example:
 
 ```rust
 #[derive(EnumStr)]
-#[enum_str(error_name = YourOwnError, no_error_struct)]
+#[enum_str(error(name = YourOwnError, disable))]
 enum Foo { Bar }
 
 struct YourOwnError { input: String }
@@ -234,39 +283,10 @@ impl fmt::Display for YourOwnError {
 
 For unit enums, just add `#[serde(try_from = "&str", into = "&'static str")]`:
 
-For example:
-
 ```rust
 #[derive(Clone, EnumStr, Serialize, Deserialize)]
 #[serde(try_from = "&str", into = "&'static str")]
 enum Foo {
     Bar,
-}
-```
-
-For data-carrying enums, since `EnumStr` doesn't support parsing non-unit variants's values, the best way is use `EnumKind` to generate a unit kind enum and then derive `EnumStr` on it.
-
-Also note that the rename rule must be specified for both `serde` and `enum_str` separately (unfortunately):
-
-```rust
-#[derive(Clone, EnumKind, Serialize, Deserialize)]
-#[serde(tag = "kind", content = "data")]
-#[serde(rename_all = "lowercase")]
-#[enum_kind(attr(derive(EnumStr)))]
-#[enum_kind(attr(enum_str(rename_all = "lowercase")))]
-enum Foo {
-    Bar { x: usize },
-}
-```
-
-For using an `EnumStr` type in a struct field, enable the `serde` feature and use `#[serde(with = "...")]`:
-
-```rust
-#[derive(Serialize, Deserialize)]
-struct MyStruct {
-    #[serde(with = "enum_helper::serde::enum_str")]
-    foo: Foo,
-    #[serde(with = "enum_helper::serde::option_enum_str")]
-    maybe_foo: Option<Foo>,
 }
 ```

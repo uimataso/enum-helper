@@ -15,7 +15,7 @@ This crate provides derive macros that generate common boilerplate for enums.
 enum-helper = "0.2"
 ```
 
-The `derive` feature is enabled by default, disable with `default-features = false` if you only need the traits.
+The `derive` feature is enabled by default.
 
 ## Derive macros
 
@@ -26,7 +26,6 @@ The `derive` feature is enabled by default, disable with `default-features = fal
 ## Feature flags
 
 - `derive` (default): re-exports derive macros
-- `serde`: provides serde helpers for use with `EnumStr`
 
 ## Similar crates
 

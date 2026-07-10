@@ -1,0 +1,5 @@
+error: duplicate enum_str `as_name` value `name`
+ --> tests/ui/enum_str_as_name_dup_name.rs:4:30
+  |
+4 | #[enum_str(as_name(name = x, name = y))]
+  |                              ^^^^

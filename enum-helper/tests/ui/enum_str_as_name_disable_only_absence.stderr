@@ -1,0 +1,8 @@
+error[E0599]: no method named `as_name` found for enum `Foo` in the current scope
+  --> tests/ui/enum_str_as_name_disable_only_absence.rs:11:22
+   |
+6  | enum Foo {
+   | -------- method `as_name` not found for this enum
+...
+11 |     let _ = Foo::Bar.as_name();
+   |                      ^^^^^^^ method not found in `Foo`

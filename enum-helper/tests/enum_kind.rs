@@ -29,6 +29,9 @@ enum Attr {
 
 #[test]
 fn attr() {
+    check!(Attr::Foo { x: 0 }.kind() == AttrKind::Foo);
+    check!(Attr::Bar(String::new()).kind() == AttrKind::Bar);
+    check!(Attr::Baz.kind() == AttrKind::Baz);
     check!(AttrKind::default() == AttrKind::Baz);
 }
 

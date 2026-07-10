@@ -1,6 +1,6 @@
 # `EnumKind`
 
-Derive the [`EnumKind`](enum_helper::EnumKind) trait and generate a unit kind enum from a data-carrying enum.
+Generate a unit kind enum from a data-carrying enum.
 
 ```rust
 use enum_helper::EnumKind;
@@ -19,9 +19,8 @@ assert_eq!(val.kind(), FooKind::Bar);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FooKind { Bar, Baz }
 
-impl EnumKind for Foo {
-    type Kind = FooKind;
-    fn kind(&self) -> Self::Kind { ... }
+impl Foo {
+    pub const fn kind(&self) -> FooKind { ... }
 }
 ```
 
@@ -52,7 +51,7 @@ assert_eq!(MsgKind::default(), MsgKind::Unknown);
 
 Disable the default `Debug, Clone, Copy, PartialEq, Eq` derives on the
 generated kind enum.
-You can then add your own derives via `attr(…)`.
+You can then add your own derives via `attr(...)`.
 
 ## Variant attributes
 

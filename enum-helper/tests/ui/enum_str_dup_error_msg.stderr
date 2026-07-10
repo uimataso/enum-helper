@@ -1,0 +1,5 @@
+error: duplicate enum_str attribute `error_msg`
+ --> tests/ui/enum_str_dup_error_msg.rs:5:12
+  |
+5 | #[enum_str(error_msg = "b")]
+  |            ^^^^^^^^^

@@ -1,0 +1,5 @@
+error: unknown enum_all `all` sub-attribute `bogus`
+ --> tests/ui/enum_all_all_unknown_sub.rs:2:16
+  |
+2 | #[enum_all(all(bogus))]
+  |                ^^^^^

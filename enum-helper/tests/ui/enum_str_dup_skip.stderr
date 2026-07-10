@@ -1,0 +1,5 @@
+error: duplicate enum_str attribute `skip`
+ --> tests/ui/enum_str_dup_skip.rs:6:16
+  |
+6 |     #[enum_str(skip)]
+  |                ^^^^

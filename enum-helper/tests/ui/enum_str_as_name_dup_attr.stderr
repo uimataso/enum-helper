@@ -1,0 +1,5 @@
+error: duplicate enum_str attribute `as_name`
+ --> tests/ui/enum_str_as_name_dup_attr.rs:5:12
+  |
+5 | #[enum_str(as_name(disable))]
+  |            ^^^^^^^

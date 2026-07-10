@@ -11,8 +11,11 @@ use crate::{
         cases::RenameRule,
         error_msg::{ErrorMsgVar, default_error_msg},
     },
+    gen_option::DefaultGenOption,
     template::TemplateSegment,
 };
+
+use super::GenOptions;
 
 pub fn parse_ir(input: &syn::DeriveInput) -> syn::Result<Ir<'_>> {
     let syn::Data::Enum(data_enum) = &input.data else {
@@ -41,7 +44,7 @@ pub fn parse_ir(input: &syn::DeriveInput) -> syn::Result<Ir<'_>> {
     if !enum_attr.default.get() && has_non_skip_non_unit_variant {
         cx.syn_error(syn::Error::new(
             Span::call_site(),
-            "EnumStr only supports unit enum by default, use #[enum_str(default)] or #[enum_str(skip)] to opt-in non-unit enum support, or using EnumKind to generate unit enum",
+            "EnumStr only supports unit enums by default; use #[enum_str(default)] or #[enum_str(skip)] to opt in to non-unit enum support, or use EnumKind to generate a unit enum",
         ));
     };
 
@@ -53,18 +56,16 @@ pub fn parse_ir(input: &syn::DeriveInput) -> syn::Result<Ir<'_>> {
     check_name_ambiguous(&cx, &variants);
 
     let error = make_error_ir(input, &enum_attr);
+    let gen_options = make_gen_options(input, enum_attr);
 
     cx.check()?;
 
     Ok(Ir {
         ident: &input.ident,
-        vis: &input.vis,
         generics: &input.generics,
-        error,
         variants,
-        gen_rendering: !enum_attr.no_rendering.get(),
-        gen_parsing: !enum_attr.no_parsing.get(),
-        gen_error_struct: !(enum_attr.no_parsing.get() || enum_attr.no_error_struct.get()),
+        error,
+        gen_options,
     })
 }
 
@@ -134,7 +135,9 @@ fn check_name_ambiguous(cx: &Ctxt, variants: &[VariantIr]) {
 }
 
 fn make_error_ir(input: &syn::DeriveInput, enum_attr: &EnumAttr) -> ErrorIr {
-    let error_ident = if let Some(name) = enum_attr.error_name.get() {
+    let gen_error_struct = enum_attr.error.enabled_or(!enum_attr.no_parsing.get());
+
+    let error_ident = if let Some(name) = enum_attr.error.name_val() {
         name.clone()
     } else {
         format_ident!("Invalid{}", &input.ident)
@@ -151,7 +154,42 @@ fn make_error_ir(input: &syn::DeriveInput, enum_attr: &EnumAttr) -> ErrorIr {
 
     ErrorIr {
         ident: error_ident,
+        vis: enum_attr.error.vis_val().unwrap_or(&input.vis).clone(),
+        gen_error_struct,
         should_store_input,
         error_template: segs,
+    }
+}
+
+fn make_gen_options(input: &syn::DeriveInput, enum_attr: EnumAttr) -> GenOptions {
+    let rendering = !enum_attr.no_rendering.get();
+    let parsing = !enum_attr.no_parsing.get();
+
+    let r_opt = |ident: &str| DefaultGenOption {
+        enabled: rendering,
+        ident: format_ident!("{}", ident),
+        vis: input.vis.clone(),
+    };
+
+    let fn_as_name = enum_attr.as_name.into_gen_option(r_opt("as_name"));
+    let fn_as_aliases = enum_attr.as_aliases.into_gen_option(r_opt("as_aliases"));
+    let const_all_names = enum_attr.all_names.into_gen_option(r_opt("ALL_NAMES"));
+    let const_all_aliases = enum_attr.all_aliases.into_gen_option(r_opt("ALL_ALIASES"));
+
+    let impl_into_static_str = enum_attr.impl_into_static_str.enabled_or(rendering);
+    let impl_as_ref_str = enum_attr.impl_as_ref_str.enabled_or(rendering);
+
+    let impl_from_str = enum_attr.impl_from_str.enabled_or(parsing);
+    let impl_try_from_str = enum_attr.impl_try_from_str.enabled_or(parsing);
+
+    GenOptions {
+        fn_as_name,
+        fn_as_aliases,
+        const_all_names,
+        const_all_aliases,
+        impl_into_static_str,
+        impl_as_ref_str,
+        impl_from_str,
+        impl_try_from_str,
     }
 }

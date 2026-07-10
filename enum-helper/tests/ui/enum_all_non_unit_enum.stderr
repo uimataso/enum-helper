@@ -1,4 +1,4 @@
-error: EnumAll only supports unit enum. Consider using `#[enum_all(skip)]` to skip non unit variant
+error: EnumAll cannot build `ALL` for non-unit variants; consider `#[enum_all(all(disable))]` to derive only `COUNT`, or `#[enum_all(skip)]` to skip them
  --> tests/ui/enum_all_non_unit_enum.rs:3:10
   |
 3 | #[derive(EnumAll, Clone, Copy, PartialEq, Eq)]

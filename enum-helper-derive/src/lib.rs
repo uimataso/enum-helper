@@ -10,20 +10,23 @@ mod ctxt;
 mod enum_all;
 mod enum_kind;
 mod enum_str;
+mod gen_option;
 mod symbol;
 mod template;
 
 use proc_macro::TokenStream;
 use syn::{DeriveInput, parse_macro_input};
 
-/// Derive the [`EnumStr`] trait to convert between a unit enum and string.
+/// Generate string conversion for an enum.
 ///
-/// `EnumStr` only supports unit enums (enums where all variants have no
-/// fields).
+/// Supports unit enums by default. Use `#[enum_str(default)]` for non-unit enums.
 ///
-/// This macro generates:
+/// This macro generates inherent items and impls on the enum:
 ///
-/// - `impl EnumStr for T`
+/// - `const fn as_name(&self) -> &'static str`
+/// - `const fn as_aliases(&self) -> &'static [&'static str]`
+/// - `const ALL_NAMES: [&'static str; N]`
+/// - `const ALL_ALIASES: [&'static str; M]`
 /// - `impl From<T> for &'static str`
 /// - `impl AsRef<str> for T`
 /// - `impl FromStr for T`
@@ -35,17 +38,24 @@ use syn::{DeriveInput, parse_macro_input};
 /// - `#[enum_str(rename_all = "snake_case")]`: rename all variants by rule
 /// - `#[enum_str(alias_all = "lowercase")]`: add aliases to all variants by rule (repeatable)
 /// - `#[enum_str(default)]`: fills non-unit variant's fields with default value during parsing
-/// - `#[enum_str(error_name = InvalidFoo)]`: custom error type name (default: `Invalid{Enum}`)
-/// - `#[enum_str(error_msg = "…")]`: custom error message template
-/// - `#[enum_str(no_rendering)]`: skip `EnumStr`, `From`, `AsRef` impls
+/// - `#[enum_str(no_rendering)]`: skip `as_name`, `as_aliases`, `ALL_NAMES`, `ALL_ALIASES`, `From`, `AsRef`
 /// - `#[enum_str(no_parsing)]`: skip `FromStr`, `TryFrom`, and the error struct
-/// - `#[enum_str(no_error_struct)]`: skip the generated error struct (bring your own)
+/// - `#[enum_str(as_name(name = ..., vis = "...", enable/disable))]`: control the `as_name` method
+/// - `#[enum_str(as_aliases(...))]`: control the `as_aliases` method
+/// - `#[enum_str(all_names(...))]`: control the `ALL_NAMES` constant
+/// - `#[enum_str(all_aliases(...))]`: control the `ALL_ALIASES` constant
+/// - `#[enum_str(impl_into_static_str(enable/disable))]`: control `impl From<T> for &'static str`
+/// - `#[enum_str(impl_as_ref_str(enable/disable))]`: control `impl AsRef<str> for T`
+/// - `#[enum_str(impl_from_str(enable/disable))]`: control `impl FromStr for T`
+/// - `#[enum_str(impl_try_from_str(enable/disable))]`: control `impl TryFrom<&str> for T`
+/// - `#[enum_str(error(name = ..., vis = "...", enable/disable))]`: control the error struct (default name `Invalid{Enum}`)
+/// - `#[enum_str(error_msg = "...")]`: custom error message template
 ///
 /// # Variant attributes
 ///
 /// - `#[enum_str(rename = "custom_name")]`: override the variant's name
 /// - `#[enum_str(alias = "alt")]`: add an alias (repeatable)
-/// - `#[enum_str(skip)]`: skip variant, only affect parsing
+/// - `#[enum_str(skip)]`: skip variant from parsing and `ALL_NAMES` / `ALL_ALIASES`
 ///
 /// # Available rename rules
 ///
@@ -90,7 +100,7 @@ use syn::{DeriveInput, parse_macro_input};
 /// assert_eq!("bazzz".parse::<Foo>().unwrap(), Foo::Baz);
 /// ```
 ///
-/// [`EnumStr`]: https://docs.rs/enum-helper/latest/enum_helper/trait.EnumStr.html
+/// [`EnumStr`]: https://docs.rs/enum-helper/latest/enum_helper/derive.EnumStr.html
 #[proc_macro_derive(EnumStr, attributes(enum_str))]
 pub fn derive_enum_str(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -103,19 +113,25 @@ pub fn derive_enum_str(input: TokenStream) -> TokenStream {
     enum_str::generate::generate(ir).into()
 }
 
-/// Derive the [`EnumAll`] trait and generate an array of all variants.
+/// Generate an array of all variants and a variant count.
 ///
-/// This macro generates:
+/// This macro generates inherent constants on the enum:
 ///
-/// - `impl EnumAll for T`
+/// - `const ALL: [Self; N]`
+/// - `const COUNT: usize`
+///
+/// `ALL` requires unit enums (it builds an array of variant values). For
+/// non-unit enums, use `#[enum_all(all(disable))]` to derive only `COUNT`, or
+/// `#[enum_all(skip)]` on the non-unit variants.
 ///
 /// # Container attributes
 ///
-/// *(none)*
+/// - `#[enum_all(all(name = ..., vis = "...", enable/disable))]`: control the `ALL` constant
+/// - `#[enum_all(count(name = ..., vis = "...", enable/disable))]`: control the `COUNT` constant
 ///
 /// # Variant attributes
 ///
-/// - `#[enum_all(skip)]`: exclude this variant from the `ALL` array
+/// - `#[enum_all(skip)]`: exclude this variant from `ALL` and `COUNT`
 ///
 /// # Example
 ///
@@ -131,9 +147,10 @@ pub fn derive_enum_str(input: TokenStream) -> TokenStream {
 /// }
 ///
 /// assert_eq!(Foo::ALL, [Foo::Bar, Foo::Baz]);
+/// assert_eq!(Foo::COUNT, 2);
 /// ```
 ///
-/// [`EnumAll`]: https://docs.rs/enum-helper/latest/enum_helper/trait.EnumAll.html
+/// [`EnumAll`]: https://docs.rs/enum-helper/latest/enum_helper/derive.EnumAll.html
 #[proc_macro_derive(EnumAll, attributes(enum_all))]
 pub fn derive_enum_all(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -146,12 +163,12 @@ pub fn derive_enum_all(input: TokenStream) -> TokenStream {
     enum_all::generate::generate(ir).into()
 }
 
-/// Derive the [`EnumKind`] trait and generate a unit kind enum from a data-carrying enum.
+/// Generate a unit kind enum from a data-carrying enum.
 ///
 /// This macro generates:
 ///
-/// - Kind enum
-/// - `impl EnumKind for T`
+/// - Kind enum (default name `{Enum}Kind`)
+/// - `const fn kind(&self) -> {Enum}Kind` inherent method
 ///
 /// # Container attributes
 ///
@@ -179,7 +196,7 @@ pub fn derive_enum_all(input: TokenStream) -> TokenStream {
 /// assert_eq!(msg.kind(), MessageKind::Text);
 /// ```
 ///
-/// [`EnumKind`]: https://docs.rs/enum-helper/latest/enum_helper/trait.EnumKind.html
+/// [`EnumKind`]: https://docs.rs/enum-helper/latest/enum_helper/derive.EnumKind.html
 #[proc_macro_derive(EnumKind, attributes(enum_kind))]
 pub fn derive_enum_kind(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

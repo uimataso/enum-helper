@@ -1,5 +1,4 @@
 use assert2::check;
-use enum_helper::EnumKind as _;
 
 mod inner {
     use enum_helper::EnumKind;
