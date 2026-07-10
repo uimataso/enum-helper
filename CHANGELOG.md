@@ -2,7 +2,7 @@
 
 ## [0.3.0] - 2026-07-11
 
-Breaking rewrite — see the [docs](docs/) for the full attribute
+Breaking rewrite ([#10]) — see the [docs](docs/) for the full attribute
 reference and migration guide.
 
 ### Changed
@@ -14,11 +14,14 @@ reference and migration guide.
   `enable`/`disable` attributes.
 - `EnumStr` now derives `Display` for the enum (writes the variant's
   name); toggleable via `#[enum_str(impl_display(enable/disable))]`,
-  disabled by `no_rendering`.
+  disabled by `no_rendering`. ([#11])
 - Removed the `serde` feature; use the generated `FromStr`/`TryFrom`
   impls with your own error type.
 - `EnumAll` now generates `ALL`/`COUNT` constants
 - `EnumKind` now generates a unit companion enum and conversions.
+
+[#10]: https://github.com/uimataso/enum-helper/pull/10
+[#11]: https://github.com/uimataso/enum-helper/pull/11
 
 ## [0.2.1] - 2026-06-22
 
