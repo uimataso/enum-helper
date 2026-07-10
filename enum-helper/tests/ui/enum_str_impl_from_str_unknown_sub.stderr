@@ -1,0 +1,5 @@
+error: unknown enum_str `impl_from_str` sub-attribute `bogus`
+ --> tests/ui/enum_str_impl_from_str_unknown_sub.rs:4:26
+  |
+4 | #[enum_str(impl_from_str(bogus))]
+  |                          ^^^^^

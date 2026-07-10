@@ -1,0 +1,5 @@
+error: duplicate enum_all `all` value `name`
+ --> tests/ui/enum_all_all_dup_name.rs:2:26
+  |
+2 | #[enum_all(all(name = X, name = Y))]
+  |                          ^^^^

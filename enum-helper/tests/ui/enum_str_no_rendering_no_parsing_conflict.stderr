@@ -1,0 +1,5 @@
+error: enum_str attribute `no_rendering` and `no_parsing` conflicts with each other
+ --> tests/ui/enum_str_no_rendering_no_parsing_conflict.rs:4:26
+  |
+4 | #[enum_str(no_rendering, no_parsing)]
+  |                          ^^^^^^^^^^

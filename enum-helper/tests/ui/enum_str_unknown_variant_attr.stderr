@@ -1,0 +1,5 @@
+error: unknown enum_str variant attribute `bogus`
+ --> tests/ui/enum_str_unknown_variant_attr.rs:3:16
+  |
+3 |     #[enum_str(bogus)]
+  |                ^^^^^

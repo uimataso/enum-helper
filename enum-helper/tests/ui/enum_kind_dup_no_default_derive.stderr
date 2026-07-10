@@ -1,0 +1,5 @@
+error: duplicate enum_kind attribute `no_default_derive`
+ --> tests/ui/enum_kind_dup_no_default_derive.rs:5:13
+  |
+5 | #[enum_kind(no_default_derive)]
+  |             ^^^^^^^^^^^^^^^^^

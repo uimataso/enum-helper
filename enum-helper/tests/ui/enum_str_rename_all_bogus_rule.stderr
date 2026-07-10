@@ -1,0 +1,5 @@
+error: unknown rename rule `"bogus"`, expected one of "lowercase", "UPPERCASE", "PascalCase", "camelCase", "snake_case", "SCREAMING_SNAKE_CASE", "kebab-case", "SCREAMING-KEBAB-CASE"
+ --> tests/ui/enum_str_rename_all_bogus_rule.rs:4:12
+  |
+4 | #[enum_str(rename_all = "bogus")]
+  |            ^^^^^^^^^^^^^^^^^^^^

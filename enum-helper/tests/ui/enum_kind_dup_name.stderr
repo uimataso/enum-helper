@@ -1,0 +1,5 @@
+error: duplicate enum_kind attribute `name`
+ --> tests/ui/enum_kind_dup_name.rs:5:13
+  |
+5 | #[enum_kind(name = B)]
+  |             ^^^^

@@ -1,0 +1,5 @@
+error: enum_str `impl_from_str` value `disable` conflicts with `enable`
+ --> tests/ui/enum_str_impl_from_str_conflict_enable_disable.rs:4:34
+  |
+4 | #[enum_str(impl_from_str(enable, disable))]
+  |                                  ^^^^^^^

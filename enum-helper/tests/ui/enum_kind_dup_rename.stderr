@@ -1,0 +1,5 @@
+error: duplicate enum_kind attribute `rename`
+ --> tests/ui/enum_kind_dup_rename.rs:6:17
+  |
+6 |     #[enum_kind(rename = Y)]
+  |                 ^^^^^^

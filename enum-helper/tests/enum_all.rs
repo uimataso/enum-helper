@@ -9,16 +9,26 @@ enum BasicCase {
 }
 
 #[test]
-fn basic_case() {
+fn basic_case_all() {
     check!(BasicCase::ALL == [BasicCase::Foo, BasicCase::Bar, BasicCase::Baz]);
+}
+
+#[test]
+fn basic_case_count() {
+    check!(BasicCase::COUNT == 3);
 }
 
 #[derive(EnumAll, PartialEq, Eq)]
 enum Empty {}
 
 #[test]
-fn empty() {
+fn empty_all() {
     check!(Empty::ALL == []);
+}
+
+#[test]
+fn empty_count() {
+    check!(Empty::COUNT == 0);
 }
 
 #[derive(EnumAll, PartialEq, Eq)]
@@ -31,8 +41,13 @@ enum Skip {
 }
 
 #[test]
-fn skip() {
+fn skip_all_const() {
     check!(Skip::ALL == [Skip::Bar, Skip::Baz]);
+}
+
+#[test]
+fn skip_count() {
+    check!(Skip::COUNT == 2);
 }
 
 #[derive(EnumAll, PartialEq, Eq)]
@@ -47,8 +62,13 @@ enum SkipAll {
 }
 
 #[test]
-fn skip_all() {
+fn skip_all_const_is_empty() {
     check!(SkipAll::ALL == []);
+}
+
+#[test]
+fn skip_all_count() {
+    check!(SkipAll::COUNT == 0);
 }
 
 #[derive(EnumAll, PartialEq, Eq)]
@@ -64,6 +84,11 @@ enum SkipNonUnit {
 }
 
 #[test]
-fn skip_non_unit() {
+fn skip_non_unit_all() {
     check!(SkipNonUnit::ALL == [SkipNonUnit::Unit]);
+}
+
+#[test]
+fn skip_non_unit_count() {
+    check!(SkipNonUnit::COUNT == 1);
 }

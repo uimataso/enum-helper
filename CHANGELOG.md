@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0] - 2026-07-11
+
+Breaking rewrite — see the [docs](docs/) for the full attribute
+reference and migration guide.
+
+### Changed
+
+- Removed the `EnumStr`, `EnumAll`, and `EnumKind` runtime traits;
+  the derives now generate inherent methods/constants and standard
+  trait impls (`From`, `AsRef`, `FromStr`, `TryFrom`) instead.
+- Each generated item is now individually toggleable via
+  `enable`/`disable` attributes.
+- Removed the `serde` feature; use the generated `FromStr`/`TryFrom`
+  impls with your own error type.
+- `EnumAll` now generates `ALL`/`COUNT` constants
+- `EnumKind` now generates a unit companion enum and conversions.
+
 ## [0.2.1] - 2026-06-22
 
 ### Fixed

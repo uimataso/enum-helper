@@ -1,8 +1,8 @@
 use enum_helper::EnumStr;
 
 #[derive(EnumStr)]
-#[enum_str(no_error_struct)]
-#[enum_str(error_msg = "custom error")]
+#[enum_str(default)]
+#[enum_str(default)]
 enum Foo {
     Bar,
 }

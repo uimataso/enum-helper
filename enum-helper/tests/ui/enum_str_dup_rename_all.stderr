@@ -1,0 +1,5 @@
+error: duplicate enum_str attribute `rename_all`
+ --> tests/ui/enum_str_dup_rename_all.rs:5:12
+  |
+5 | #[enum_str(rename_all = "UPPERCASE")]
+  |            ^^^^^^^^^^

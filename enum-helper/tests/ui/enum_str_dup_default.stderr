@@ -1,0 +1,5 @@
+error: duplicate enum_str attribute `default`
+ --> tests/ui/enum_str_dup_default.rs:5:12
+  |
+5 | #[enum_str(default)]
+  |            ^^^^^^^

@@ -1,0 +1,14 @@
+error[E0277]: the trait bound `&str: From<Foo>` is not satisfied
+ --> tests/ui/enum_str_impl_into_static_str_disable_absence.rs:9:36
+  |
+9 |     let _: &'static str = Foo::Bar.into();
+  |                                    ^^^^ the trait `From<Foo>` is not implemented for `&str`
+  |
+  = help: the following other types implement trait `From<T>`:
+            `String` implements `From<&String>`
+            `String` implements `From<&mut str>`
+            `String` implements `From<&str>`
+            `String` implements `From<Box<str>>`
+            `String` implements `From<Cow<'_, str>>`
+            `String` implements `From<char>`
+  = note: required for `Foo` to implement `Into<&str>`

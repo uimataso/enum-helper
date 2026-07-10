@@ -1,0 +1,5 @@
+error: duplicate enum_str `as_name` value `vis`
+ --> tests/ui/enum_str_as_name_dup_vis.rs:4:33
+  |
+4 | #[enum_str(as_name(vis = "pub", vis = "pub(crate)"))]
+  |                                 ^^^

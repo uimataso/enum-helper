@@ -1,0 +1,5 @@
+error: `error_msg` has no effect when the error struct is not generated (disabled via `error(disable)` or `no_parsing`)
+ --> tests/ui/enum_str_error_msg_no_parsing_conflict.rs:4:24
+  |
+4 | #[enum_str(no_parsing, error_msg = "custom {input}")]
+  |                        ^^^^^^^^^

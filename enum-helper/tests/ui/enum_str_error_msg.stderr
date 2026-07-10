@@ -1,7 +1,5 @@
 error: unclosed `{` in error message template
- --> tests/ui/enum_str_error_msg.rs:3:10
+ --> tests/ui/enum_str_error_msg.rs:4:12
   |
-3 | #[derive(EnumStr)]
-  |          ^^^^^^^
-  |
-  = note: this error originates in the derive macro `EnumStr` (in Nightly builds, run with -Z macro-backtrace for more info)
+4 | #[enum_str(error_msg = "invalid msg {")]
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^

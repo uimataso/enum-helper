@@ -20,6 +20,16 @@ fn basic_case_as_aliases() {
 }
 
 #[test]
+fn basic_case_all_names() {
+    check!(BasicCase::ALL_NAMES == ["FooBar", "Baz"]);
+}
+
+#[test]
+fn basic_case_all_aliases() {
+    check!(BasicCase::ALL_ALIASES == ["FooBar", "Baz"]);
+}
+
+#[test]
 fn basic_case_into_str() {
     let s: &'static str = BasicCase::FooBar.into();
     check!(s == "FooBar");
@@ -62,18 +72,18 @@ enum SpecialName {
 
 #[test]
 fn special_name_as_name() {
-    check!(SpecialName::r#type.as_name() == "r#type"); // we could make this produce "type", but why?
+    check!(SpecialName::r#type.as_name() == "r#type");
     check!(SpecialName::中文.as_name() == "中文");
 }
 
 #[test]
 fn special_name_from_name() {
-    check!("r#type".parse::<SpecialName>().unwrap() == SpecialName::r#type); // we could make this produce "type", but why?
+    check!("r#type".parse::<SpecialName>().unwrap() == SpecialName::r#type);
     check!("中文".parse::<SpecialName>().unwrap() == SpecialName::中文);
 }
 
 #[derive(Debug, EnumStr, PartialEq, Eq)]
-#[enum_str(error_name = MyBadError)]
+#[enum_str(error(name = MyBadError))]
 enum ErrorCustomName {
     One,
     Two,

@@ -1,0 +1,5 @@
+error: unknown enum_str `as_name` sub-attribute `unknown`
+ --> tests/ui/enum_str_unknown_sub_attr.rs:4:20
+  |
+4 | #[enum_str(as_name(unknown = 1))]
+  |                    ^^^^^^^

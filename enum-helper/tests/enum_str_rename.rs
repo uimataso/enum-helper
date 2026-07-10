@@ -76,7 +76,6 @@ enum DedupAlias {
 
 #[test]
 fn dedup_alias_as_aliases() {
-    // "Foo" name stays, "foo" from alias_all is added (different from name)
     check!(DedupAlias::Foo.as_aliases() == &["Foo", "foo"]);
     check!(DedupAlias::Baz.as_aliases() == &["Baz", "baz"]);
 }

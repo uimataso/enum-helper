@@ -4,7 +4,7 @@ use assert2::check;
 use enum_helper::EnumStr;
 
 #[derive(Debug, EnumStr, PartialEq, Eq)]
-#[enum_str(no_error_struct, error_name = YourOwnError)]
+#[enum_str(error(name = YourOwnError, disable))]
 enum Foo {
     Bar,
 }
@@ -30,5 +30,5 @@ impl YourOwnError {
 #[test]
 fn bring_your_own_error() {
     let res: Result<Foo, YourOwnError> = "test".parse();
-    check!(let Err(YourOwnError { ..}) = res);
+    check!(let Err(YourOwnError { .. }) = res);
 }

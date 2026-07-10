@@ -1,10 +1,12 @@
-#![allow(dead_code)]
-
-use proc_macro2::TokenStream;
+use proc_macro2::{TokenStream, TokenTree};
 use quote::ToTokens;
 use syn::{meta::ParseNestedMeta, parse::Parse};
 
-use crate::{ctxt::Ctxt, symbol::Symbol};
+use crate::{
+    ctxt::Ctxt,
+    gen_option::{DefaultGenOption, GenOption},
+    symbol::Symbol,
+};
 
 pub trait Attr {
     fn attr(&self) -> Symbol;
@@ -16,13 +18,16 @@ pub trait Attr {
 pub struct AttrVal<T> {
     attr: Symbol,
     name: Symbol,
-    inner: Option<AttrValInner<T>>,
+
+    path: Option<TokenStream>,
+    input: Option<TokenStream>,
+    value: Option<T>,
 }
 
-struct AttrValInner<T> {
-    path: TokenStream,
-    input: TokenStream,
-    value: T,
+pub struct AttrBool {
+    attr: Symbol,
+    name: Symbol,
+    path: Option<TokenStream>,
 }
 
 pub struct AttrVec<T> {
@@ -37,14 +42,34 @@ struct AttrVecInner<T> {
     value: T,
 }
 
-pub struct AttrBool {
+/// Parse attr for `xxx(name = xxx, vis = "pub", disabled)`
+pub struct DeriveAttr {
     attr: Symbol,
     name: Symbol,
-    inner: Option<AttrBoolInner>,
+    name_val: Option<syn::Ident>,
+    vis_val: Option<syn::Visibility>,
+    enabled: Option<bool>,
+    path: Option<TokenStream>,
 }
 
-struct AttrBoolInner {
-    path: TokenStream,
+/// Parse attr for `xxx(disabled)`
+pub struct ImplAttr {
+    attr: Symbol,
+    name: Symbol,
+    enabled: Option<bool>,
+    path: Option<TokenStream>,
+}
+
+pub fn check_conflict(cx: &Ctxt, a: &impl Attr, b: &impl Attr) {
+    if let (Some(_a_token), Some(b_token)) = (a.path_token(), b.path_token()) {
+        let msg = format!(
+            "{} attribute `{}` and `{}` conflicts with each other",
+            a.attr(),
+            a.name(),
+            b.name()
+        );
+        cx.error_spanned_by(b_token, msg);
+    }
 }
 
 impl<T> AttrVal<T> {
@@ -52,56 +77,44 @@ impl<T> AttrVal<T> {
         Self {
             attr,
             name,
-            inner: None,
+            path: None,
+            input: None,
+            value: None,
         }
     }
 
     pub fn get(&self) -> Option<&T> {
-        self.inner.as_ref().map(|x| &x.value)
+        self.value.as_ref()
     }
 
-    pub fn try_from_meta<V, F, E>(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>, f: F)
+    pub fn try_from_meta(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>)
+    where
+        T: Parse,
+    {
+        self.try_from_meta_map(cx, meta, |t| Result::<T, &str>::Ok(t))
+    }
+
+    pub fn try_from_meta_map<V, F, E>(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>, f: F)
     where
         V: Parse,
         F: Fn(V) -> Result<T, E>,
         E: core::fmt::Display,
     {
-        // we need to parse the value every time so the error msg is correct
-        // so even if the value is set, we still need to parse the value
-        if self.inner.is_some() {
+        // We need to parse the value for the error message to be correct.
+        if self.is_set() {
             let msg = format!("duplicate {} attribute `{}`", self.attr, self.name);
             cx.error_spanned_by(&meta.path, msg);
         }
 
-        match self.parse_meta(meta, f) {
-            Ok(t) => {
-                if self.inner.is_none() {
-                    self.inner = Some(t);
-                }
+        match parse_meta(meta, f) {
+            Ok((val, token)) if !self.is_set() => {
+                self.path = Some(meta.path.to_token_stream());
+                self.input = Some(token);
+                self.value = Some(val);
             }
+            Ok(_) => {}
             Err(e) => cx.syn_error(e),
         }
-    }
-
-    fn parse_meta<V, F, E>(
-        &mut self,
-        meta: &ParseNestedMeta<'_>,
-        f: F,
-    ) -> syn::Result<AttrValInner<T>>
-    where
-        V: Parse,
-        F: Fn(V) -> Result<T, E>,
-        E: core::fmt::Display,
-    {
-        let value = meta.value()?;
-        let token: TokenStream = value.parse()?;
-        let parsed: V = syn::parse2(token.clone())?;
-        let res = f(parsed).map_err(|e| meta.error(e))?;
-        Ok(AttrValInner {
-            path: meta.path.to_token_stream(),
-            input: token,
-            value: res,
-        })
     }
 }
 
@@ -115,11 +128,54 @@ impl<T> Attr for AttrVal<T> {
     }
 
     fn is_set(&self) -> bool {
-        self.inner.is_some()
+        self.value.is_some()
     }
 
     fn path_token(&self) -> Option<TokenStream> {
-        self.inner.as_ref().map(|x| x.path.clone())
+        self.path.clone()
+    }
+}
+
+impl AttrBool {
+    pub fn new(attr: Symbol, name: Symbol) -> Self {
+        Self {
+            attr,
+            name,
+            path: None,
+        }
+    }
+
+    pub fn get(&self) -> bool {
+        self.path.is_some()
+    }
+
+    pub fn try_from_meta(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>) {
+        if self.is_set() {
+            let msg = format!("duplicate {} attribute `{}`", self.attr, self.name);
+            cx.error_spanned_by(&meta.path, msg);
+        }
+
+        if !self.is_set() {
+            self.path = Some(meta.path.to_token_stream())
+        }
+    }
+}
+
+impl Attr for AttrBool {
+    fn attr(&self) -> Symbol {
+        self.attr
+    }
+
+    fn name(&self) -> Symbol {
+        self.name
+    }
+
+    fn is_set(&self) -> bool {
+        self.path.is_some()
+    }
+
+    fn path_token(&self) -> Option<TokenStream> {
+        self.path.clone()
     }
 }
 
@@ -136,18 +192,28 @@ impl<T> AttrVec<T> {
         self.inner.iter().map(|x| &x.value).collect()
     }
 
-    pub fn get_owned(self) -> Vec<T> {
-        self.inner.into_iter().map(|x| x.value).collect()
+    pub fn try_from_meta(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>)
+    where
+        T: Parse,
+    {
+        self.try_from_meta_map(cx, meta, |t| Result::<T, &str>::Ok(t))
     }
 
-    pub fn try_from_meta<V, F, E>(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>, f: F)
+    pub fn try_from_meta_map<V, F, E>(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>, f: F)
     where
         V: Parse,
         F: Fn(V) -> Result<T, E>,
         E: core::fmt::Display,
     {
-        match self.parse_meta(meta, f) {
-            Ok(t) => self.inner.push(t),
+        match parse_meta(meta, f) {
+            Ok((val, token)) => {
+                let i = AttrVecInner {
+                    path: meta.path.to_token_stream(),
+                    input: token,
+                    value: val,
+                };
+                self.inner.push(i);
+            }
             Err(e) => cx.syn_error(e),
         }
     }
@@ -164,27 +230,6 @@ impl<T> AttrVec<T> {
                 }
             }
         }
-    }
-
-    fn parse_meta<V, F, E>(
-        &mut self,
-        meta: &ParseNestedMeta<'_>,
-        f: F,
-    ) -> syn::Result<AttrVecInner<T>>
-    where
-        V: Parse,
-        F: Fn(V) -> Result<T, E>,
-        E: core::fmt::Display,
-    {
-        let value = meta.value()?;
-        let token: TokenStream = value.parse()?;
-        let parsed: V = syn::parse2(token.clone())?;
-        let res = f(parsed).map_err(|e| meta.error(e))?;
-        Ok(AttrVecInner {
-            path: meta.path.to_token_stream(),
-            input: token,
-            value: res,
-        })
     }
 }
 
@@ -206,43 +251,143 @@ impl<T> Attr for AttrVec<T> {
     }
 }
 
-impl AttrBool {
+impl DeriveAttr {
     pub fn new(attr: Symbol, name: Symbol) -> Self {
         Self {
             attr,
             name,
-            inner: None,
+            name_val: None,
+            vis_val: None,
+            enabled: None,
+            path: None,
         }
     }
 
-    pub fn get(&self) -> bool {
-        self.inner.is_some()
+    pub fn name_val(&self) -> Option<&syn::Ident> {
+        self.name_val.as_ref()
     }
 
+    pub fn vis_val(&self) -> Option<&syn::Visibility> {
+        self.vis_val.as_ref()
+    }
+
+    pub fn enabled_or(&self, def: bool) -> bool {
+        self.enabled.unwrap_or(def)
+    }
+
+    /// Parse `name = <ident>`, `vis = "..."`, `enable`, `disable` from the
+    /// nested meta of this attribute, e.g. `as_name(name = as_name, vis = "pub", disable)`.
     pub fn try_from_meta(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>) {
-        if self.inner.is_some() {
+        use crate::symbol::*;
+
+        if self.is_set() {
             let msg = format!("duplicate {} attribute `{}`", self.attr, self.name);
+            cx.error_spanned_by(&meta.path, msg);
+
+            // still consume the input so the outer
+            // `parse_nested_meta` driver does not choke on leftover tokens
+            let _ = meta.parse_nested_meta(|_| Ok(()));
+            return;
+        }
+
+        self.path = Some(meta.path.to_token_stream());
+
+        let res = meta.parse_nested_meta(|m| {
+            if m.path == NAME {
+                self.parse_name(cx, &m);
+            } else if m.path == VIS {
+                self.parse_vis(cx, &m);
+            } else if m.path == ENABLE {
+                self.set_enabled(cx, &m, true);
+            } else if m.path == DISABLE {
+                self.set_enabled(cx, &m, false);
+            } else {
+                let path = m.path.to_token_stream().to_string().replace(' ', "");
+                let msg = format!(
+                    "unknown {} `{}` sub-attribute `{}`",
+                    self.attr, self.name, path
+                );
+                let err = m.error(msg);
+                // Drain the rest of this sub-attribute so syn's `ParseBuffer`
+                // drop handler doesn't surface a spurious "unexpected token"
+                // error from the leftover `= value` or `(...)` tokens.
+                let _ = m.input.parse::<proc_macro2::TokenStream>();
+                return Err(err);
+            }
+            Ok(())
+        });
+
+        if let Err(err) = res {
+            cx.syn_error(err);
+        }
+    }
+
+    pub fn into_gen_option(self, def_opt: DefaultGenOption) -> Option<GenOption> {
+        if !self.enabled_or(def_opt.enabled) {
+            return None;
+        }
+
+        Some(GenOption {
+            ident: self.name_val.unwrap_or(def_opt.ident),
+            vis: self.vis_val.unwrap_or(def_opt.vis),
+        })
+    }
+
+    fn parse_name(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>) {
+        let is_dup = self.name_val.is_some();
+        if is_dup {
+            let msg = format!("duplicate {} `{}` value `name`", self.attr, self.name);
             cx.error_spanned_by(&meta.path, msg);
         }
 
-        match self.parse_meta(meta) {
-            Ok(t) => {
-                if self.inner.is_none() {
-                    self.inner = Some(t)
-                }
+        match parse_meta(meta, |i: syn::Ident| Result::<_, &str>::Ok(i)) {
+            Ok((val, _token)) if !is_dup => {
+                self.name_val = Some(val);
             }
+            Ok(_) => {}
             Err(e) => cx.syn_error(e),
         }
     }
 
-    fn parse_meta(&mut self, meta: &ParseNestedMeta<'_>) -> syn::Result<AttrBoolInner> {
-        Ok(AttrBoolInner {
-            path: meta.path.to_token_stream(),
-        })
+    fn parse_vis(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>) {
+        let is_dup = self.vis_val.is_some();
+        if is_dup {
+            let msg = format!("duplicate {} `{}` value `vis`", self.attr, self.name);
+            cx.error_spanned_by(&meta.path, msg);
+        }
+
+        match parse_meta(meta, |s: syn::LitStr| {
+            syn::parse_str::<syn::Visibility>(&s.value())
+        }) {
+            Ok((val, _token)) if !is_dup => {
+                self.vis_val = Some(val);
+            }
+            Ok(_) => {}
+            Err(e) => cx.syn_error(e),
+        }
+    }
+
+    fn set_enabled(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>, value: bool) {
+        if let Some(prev_value) = self.enabled {
+            let label = if value { "enable" } else { "disable" };
+            let other = if value { "disable" } else { "enable" };
+            let msg = if value == prev_value {
+                format!("duplicate {} `{}` value `{}`", self.attr, self.name, label)
+            } else {
+                format!(
+                    "{} `{}` value `{}` conflicts with `{}`",
+                    self.attr, self.name, label, other
+                )
+            };
+            cx.error_spanned_by(&meta.path, msg);
+            return;
+        }
+
+        self.enabled = Some(value);
     }
 }
 
-impl Attr for AttrBool {
+impl Attr for DeriveAttr {
     fn attr(&self) -> Symbol {
         self.attr
     }
@@ -252,22 +397,117 @@ impl Attr for AttrBool {
     }
 
     fn is_set(&self) -> bool {
-        self.inner.is_some()
+        self.path.is_some()
     }
 
     fn path_token(&self) -> Option<TokenStream> {
-        self.inner.as_ref().map(|x| x.path.clone())
+        self.path.clone()
     }
 }
 
-pub fn check_conflict(cx: &Ctxt, a: &impl Attr, b: &impl Attr) {
-    if let (Some(_a_token), Some(b_token)) = (a.path_token(), b.path_token()) {
-        let msg = format!(
-            "{} attribute `{}` and `{}` conflicts with each other",
-            a.attr(),
-            a.name(),
-            b.name()
-        );
-        cx.error_spanned_by(b_token, msg);
+impl ImplAttr {
+    pub fn new(attr: Symbol, name: Symbol) -> Self {
+        Self {
+            attr,
+            name,
+            enabled: None,
+            path: None,
+        }
     }
+
+    pub fn enabled_or(&self, def: bool) -> bool {
+        self.enabled.unwrap_or(def)
+    }
+
+    /// Parse `enable` / `disable` from the nested meta of this attribute,
+    /// e.g. `impl_from_str(disable)`.
+    pub fn try_from_meta(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>) {
+        use crate::symbol::*;
+
+        if self.is_set() {
+            let msg = format!("duplicate {} attribute `{}`", self.attr, self.name);
+            cx.error_spanned_by(&meta.path, msg);
+
+            let _ = meta.parse_nested_meta(|_| Ok(()));
+            return;
+        }
+
+        self.path = Some(meta.path.to_token_stream());
+
+        let res = meta.parse_nested_meta(|m| {
+            if m.path == ENABLE {
+                self.set_enabled(cx, &m, true);
+            } else if m.path == DISABLE {
+                self.set_enabled(cx, &m, false);
+            } else {
+                let path = m.path.to_token_stream().to_string().replace(' ', "");
+                let msg = format!(
+                    "unknown {} `{}` sub-attribute `{}`",
+                    self.attr, self.name, path
+                );
+                let err = m.error(msg);
+                // Drain the rest of this sub-attribute so syn's `ParseBuffer`
+                // drop handler doesn't surface a spurious "unexpected token"
+                // error from the leftover `= value` or `(...)` tokens.
+                let _ = m.input.parse::<proc_macro2::TokenStream>();
+                return Err(err);
+            }
+            Ok(())
+        });
+
+        if let Err(err) = res {
+            cx.syn_error(err);
+        }
+    }
+
+    fn set_enabled(&mut self, cx: &Ctxt, meta: &ParseNestedMeta<'_>, value: bool) {
+        if let Some(prev_value) = self.enabled {
+            let label = if value { "enable" } else { "disable" };
+            let other = if value { "disable" } else { "enable" };
+            let msg = if value == prev_value {
+                format!("duplicate {} `{}` value `{}`", self.attr, self.name, label)
+            } else {
+                format!(
+                    "{} `{}` value `{}` conflicts with `{}`",
+                    self.attr, self.name, label, other
+                )
+            };
+            cx.error_spanned_by(&meta.path, msg);
+            return;
+        }
+
+        self.enabled = Some(value);
+    }
+}
+
+impl Attr for ImplAttr {
+    fn attr(&self) -> Symbol {
+        self.attr
+    }
+
+    fn name(&self) -> Symbol {
+        self.name
+    }
+
+    fn is_set(&self) -> bool {
+        self.path.is_some()
+    }
+
+    fn path_token(&self) -> Option<TokenStream> {
+        self.path.clone()
+    }
+}
+
+fn parse_meta<T, F, I, E>(meta: &ParseNestedMeta<'_>, f: F) -> syn::Result<(T, TokenStream)>
+where
+    F: Fn(I) -> Result<T, E>,
+    I: Parse,
+    E: core::fmt::Display,
+{
+    let value = meta.value()?;
+    let tt: TokenTree = value.parse()?;
+    let token: TokenStream = tt.into();
+    let parsed: I = syn::parse2(token.clone())?;
+    let val = f(parsed).map_err(|e| meta.error(e))?;
+    Ok((val, token))
 }

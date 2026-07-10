@@ -1,0 +1,16 @@
+error[E0277]: the trait bound `Foo: FromStr` is not satisfied
+ --> tests/ui/enum_str_impl_from_str_disable_absence.rs:9:19
+  |
+9 |     let _ = "Bar".parse::<Foo>().unwrap();
+  |                   ^^^^^ the trait `FromStr` is not implemented for `Foo`
+  |
+  = help: the following other types implement trait `FromStr`:
+            CString
+            IpAddr
+            Ipv4Addr
+            Ipv6Addr
+            NonZero<i128>
+            NonZero<i16>
+            NonZero<i32>
+            NonZero<i64>
+          and $N others

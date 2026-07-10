@@ -1,0 +1,5 @@
+error: enum_str `as_name` value `disable` conflicts with `enable`
+ --> tests/ui/enum_str_as_name_conflict_enable_disable.rs:4:28
+  |
+4 | #[enum_str(as_name(enable, disable))]
+  |                            ^^^^^^^

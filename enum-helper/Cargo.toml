@@ -15,18 +15,11 @@ categories = ["development-tools::procedural-macro-helpers"]
 [features]
 default = ["derive"]
 derive = ["dep:enum-helper-derive"]
-serde = ["dep:serde"]
 
 [dependencies]
 enum-helper-derive = { version = "0.2.1", path = "../enum-helper-derive", optional = true }
-serde = { version = "1", optional = true }
 
 [dev-dependencies]
 assert2 = "0.4"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
 trybuild = "1.0"
 
-[[test]]
-name = "serde"
-required-features = ["serde"]
