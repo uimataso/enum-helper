@@ -1,6 +1,6 @@
 [package]
 name = "enum-helper"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["uima <git@uimataso.com>"]
 edition = "2024"
 rust-version = "1.85"
@@ -17,7 +17,7 @@ default = ["derive"]
 derive = ["dep:enum-helper-derive"]
 
 [dependencies]
-enum-helper-derive = { version = "0.3.0", path = "../enum-helper-derive", optional = true }
+enum-helper-derive = { version = "0.3.1", path = "../enum-helper-derive", optional = true }
 
 [dev-dependencies]
 assert2 = "0.4"
