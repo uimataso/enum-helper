@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.1] - 2026-07-13
+
+### Fixed
+
+- README dependency example now points to `0.3` instead of the outdated `0.2` ([#14])
+
+### Added
+
+- `justfile` with `fmt`, `test`, and `ci` recipes ([#13])
+
+[#14]: https://github.com/uimataso/enum-helper/pull/14
+[#13]: https://github.com/uimataso/enum-helper/pull/13
+
 ## [0.3.0] - 2026-07-11
 
 Breaking rewrite ([#10]) — see the [docs](docs/) for the full attribute
